@@ -1,0 +1,9 @@
+{
+  "name": "vision-tools",
+  "version": "1.0.0",
+  "description": "Computer vision tools for Skyfusion Analytics",
+  "type": "module",
+  "main": "index.js",
+  "keywords": ["vision", "opencv", "image-processing"],
+  "author": "Skyfusion Team"
+}
