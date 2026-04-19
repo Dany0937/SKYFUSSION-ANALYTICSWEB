@@ -7,20 +7,26 @@ procesamiento de datos satelitales de la cuenca del Río Combeima.
 
 Módulos:
 - preprocessor: Integración con Google Earth Engine
+- event_bus: Sistema de mensajería de eventos
 
 Uso:
 
-    from preprocessor import (
-        GEEAuthenticator,
-        SatelliteDataPreprocessor,
-        CombeimaBasinProvider,
-        preprocess_combeima_basin
-    )
+    # Inicialización básica
+    from preprocessor import GEEAuthenticator, SatelliteDataPreprocessor
     
     GEEAuthenticator.initialize()
-    
     preprocessor = SatelliteDataPreprocessor()
+    
+    # Consulta de imágenes
     result = preprocessor.query_images("1985-01-01", "1985-12-31")
+    
+    # Con emisión de eventos
+    from preprocessor import preprocess_combeima_basin
+    result = preprocess_combeima_basin(
+        start_date="1985-01-01",
+        end_date="1985-12-31",
+        emit_events=True
+    )
 """
 
 from .preprocessor import (
@@ -31,13 +37,24 @@ from .preprocessor import (
     SatelliteCollection,
     ImageCollectionConfig,
     QueryResult,
+    ProcessingStats,
     preprocess_combeima_basin
+)
+
+from .event_bus import (
+    GeoEventEmitter,
+    SkyfusionEvent,
+    EventStore,
+    LocalEventBus,
+    RedisEventBus,
+    get_event_emitter
 )
 
 __version__ = "1.0.0"
 __author__ = "Skyfusion Analytics - Geospatial Division"
 
 __all__ = [
+    # GEE Preprocessor
     "GEEAuthenticator",
     "GEEConfig",
     "CombeimaBasinProvider",
@@ -45,5 +62,13 @@ __all__ = [
     "SatelliteCollection",
     "ImageCollectionConfig",
     "QueryResult",
-    "preprocess_combeima_basin"
+    "ProcessingStats",
+    "preprocess_combeima_basin",
+    # Event Bus
+    "GeoEventEmitter",
+    "SkyfusionEvent",
+    "EventStore",
+    "LocalEventBus",
+    "RedisEventBus",
+    "get_event_emitter"
 ]

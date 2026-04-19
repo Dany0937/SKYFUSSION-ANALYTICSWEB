@@ -12,15 +12,27 @@ Funcionalidades:
 - Filtrado por nubosidad < 15%
 - Compilación de series temporales
 - Cálculo de índices espectrales (NDVI, NDWI)
+- Emisión de eventos: IMAGENES_HISTORICAS_LISTAS
 """
 
 import os
+import sys
 import json
-import ee
-from datetime import datetime, timedelta
-from typing import Optional, Dict, List, Tuple, Any, Union
-from dataclasses import dataclass
+import logging
+from datetime import datetime
+from typing import Optional, Dict, List, Tuple, Any
+from dataclasses import dataclass, asdict
 from enum import Enum
+
+import ee
+
+from event_bus import get_event_emitter, GeoEventEmitter, SkyfusionEvent, EventStore
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s: %(message)s'
+)
 
 
 class SatelliteCollection(Enum):
@@ -61,6 +73,27 @@ class QueryResult:
     date_range: Tuple[str, str]
     images: List[Dict[str, Any]]
     geometry: Dict
+    cloud_filter_stats: Dict[str, int]
+    
+    def to_dict(self) -> Dict:
+        result = asdict(self)
+        return result
+
+
+@dataclass
+class ProcessingStats:
+    """Estadísticas del procesamiento de series temporales."""
+    total_years: int
+    years_with_data: int
+    years_without_data: int
+    total_images: int
+    filtered_by_cloud: int
+    collections_used: List[str]
+    processing_time_seconds: float
+    errors: List[Dict[str, str]]
+    
+    def to_dict(self) -> Dict:
+        return asdict(self)
 
 
 class GEEAuthenticator:
@@ -73,6 +106,7 @@ class GEEAuthenticator:
     """
     
     _initialized = False
+    logger = logging.getLogger(__name__)
     
     @classmethod
     def initialize(
@@ -93,7 +127,7 @@ class GEEAuthenticator:
             True si la autenticación fue exitosa
         """
         if cls._initialized:
-            print("[INFO] GEE ya está inicializado")
+            cls.logger.info("GEE ya está inicializado")
             return True
             
         try:
@@ -113,18 +147,16 @@ class GEEAuthenticator:
                 ee.Initialize()
                 
             cls._initialized = True
-            print("[INFO] GEE inicializado correctamente")
-            print(f"[INFO] Proyecto: {ee.data.getProject()}")
+            cls.logger.info(f"GEE inicializado correctamente - Proyecto: {ee.data.getProject()}")
             
             return True
             
         except Exception as e:
-            print(f"[ERROR] Error inicializando GEE: {str(e)}")
-            
-            print("\n[INFO] Para inicializar manualmente, ejecute:")
-            print("  1. Instale earthengine-api: pip install earthengine-api")
-            print("  2. Autentique: earthengine authenticate")
-            print("  3. En su código: ee.Initialize()")
+            cls.logger.error(f"Error inicializando GEE: {str(e)}")
+            cls.logger.info("Pasos para autenticación manual:")
+            cls.logger.info("  1. pip install earthengine-api")
+            cls.logger.info("  2. earthengine authenticate")
+            cls.logger.info("  3. ee.Initialize()")
             
             return False
     
@@ -200,13 +232,13 @@ class CombeimaBasinProvider:
     
     @classmethod
     def get_bounds(cls) -> Tuple[float, float, float, float]:
-        """
-        Retorna el bounding box de la cuenca.
-        
-        Returns:
-            Tupla (min_lon, min_lat, max_lon, max_lat)
-        """
+        """Retorna el bounding box de la cuenca."""
         return (-75.257, 4.433, -75.142, 4.529)
+    
+    @classmethod
+    def get_info(cls) -> Dict:
+        """Retorna información de la cuenca."""
+        return cls.COMBEIMA_BASIN_GEOJSON["features"][0]["properties"]
 
 
 class SatelliteDataPreprocessor:
@@ -215,7 +247,7 @@ class SatelliteDataPreprocessor:
     
     Proporciona métodos para:
     - Consultar colecciones satelitales según período histórico
-    - Filtrar por nubosidad
+    - Filtrar por nubosidad (< 15%)
     - Calcular compuestos temporales
     - Exportar índices espectrales
     """
@@ -263,18 +295,32 @@ class SatelliteDataPreprocessor:
         )
     }
     
-    def __init__(self, geometry: Optional[ee.Geometry] = None) -> None:
+    def __init__(
+        self,
+        geometry: Optional[ee.Geometry] = None,
+        emit_events: bool = True
+    ) -> None:
         """
         Inicializa el preprocesador.
         
         Args:
-            geometry: Geometría del área de estudio (opcional)
+            geometry: Geometría del área de estudio
+            emit_events: Si debe emitir eventos al bus
         """
         if not GEEAuthenticator.is_initialized():
             GEEAuthenticator.initialize()
             
         self.geometry = geometry or CombeimaBasinProvider.get_geometry()
+        self.logger = logging.getLogger(__name__)
         
+        self.event_emitter: Optional[GeoEventEmitter] = None
+        if emit_events:
+            try:
+                self.event_emitter = get_event_emitter()
+                self.logger.info("Event emitter configurado")
+            except Exception as e:
+                self.logger.warning(f"No se pudo inicializar event emitter: {e}")
+    
     def _get_collection_for_year(self, year: int) -> List[SatelliteCollection]:
         """
         Determina qué colecciones satelitales usar según el año.
@@ -328,12 +374,20 @@ class SatelliteDataPreprocessor:
         collections = self._get_collection_for_year(year)
         
         all_images = []
+        total_images = 0
+        filtered_by_cloud = 0
+        collections_data = []
         
         for collection in collections:
             config = self._get_collection_config(collection)
             
             try:
                 img_collection = ee.ImageCollection(config.collection_id)
+                
+                pre_filter_count = img_collection.filterDate(
+                    start_date, end_date
+                ).filterBounds(self.geometry).size().getInfo()
+                total_images += pre_filter_count
                 
                 filtered = img_collection.filterDate(start_date, end_date)
                 filtered = filtered.filterBounds(self.geometry)
@@ -343,30 +397,60 @@ class SatelliteDataPreprocessor:
                 filtered = filtered.sort('system:time_start', False)
                 filtered = filtered.limit(max_results)
                 
+                post_filter_count = filtered.size().getInfo()
+                filtered_by_cloud += pre_filter_count - post_filter_count
+                
+                collections_data.append({
+                    "collection": collection.value,
+                    "geeCollectionId": config.collection_id,
+                    "preFilterCount": pre_filter_count,
+                    "postFilterCount": post_filter_count,
+                    "cloudProperty": config.cloud_property,
+                    "maxCloudPercent": config.max_cloud_percent
+                })
+                
                 image_list = filtered.getInfo()
                 
                 if image_list and 'features' in image_list:
                     for img in image_list['features']:
+                        cloud_cover = img['properties'].get(config.cloud_property, 0)
                         all_images.append({
                             'id': img['id'],
                             'collection': collection.value,
                             'date': img['properties'].get('system:time_start'),
-                            'cloud_cover': img['properties'].get(config.cloud_property, 0),
+                            'cloud_cover': cloud_cover,
                             'scale': config.scale
                         })
                         
+                self.logger.info(
+                    f"  {collection.value}: {post_filter_count} imágenes "
+                    f"(filtradas: {pre_filter_count - post_filter_count})"
+                )
+                         
             except Exception as e:
-                print(f"[WARN] Error consultando {collection.value}: {str(e)}")
+                self.logger.error(f"Error consultando {collection.value}: {str(e)}")
+                collections_data.append({
+                    "collection": collection.value,
+                    "error": str(e)
+                })
                 continue
                 
         all_images.sort(key=lambda x: x.get('date', 0), reverse=True)
+        
+        cloud_filter_stats = {
+            "totalImages": total_images,
+            "afterCloudFilter": len(all_images),
+            "filteredByCloud": filtered_by_cloud,
+            "filterPercent": round(filtered_by_cloud / total_images * 100, 2) if total_images > 0 else 0
+        }
         
         return QueryResult(
             collection_name=', '.join([c.value for c in collections]),
             image_count=len(all_images),
             date_range=(start_date, end_date),
             images=all_images[:max_results],
-            geometry=self.geometry.getInfo()
+            geometry=self.geometry.getInfo(),
+            cloud_filter_stats=cloud_filter_stats
         )
     
     def get_annual_composite(
@@ -402,6 +486,7 @@ class SatelliteDataPreprocessor:
         )
         
         if filtered.size().getInfo() == 0:
+            self.logger.warning(f"No images found for year {year}")
             return None
             
         composite = filtered.median()
@@ -429,30 +514,22 @@ class SatelliteDataPreprocessor:
         result = image
         
         if 'ndvi' in indices:
-            try:
-                ndvi = image.normalizedDifference(['B5', 'B4']).rename('NDVI')
-                result = result.addBand(ndvi)
-            except:
+            for nir_band, red_band in [('B5', 'B4'), ('SR_B5', 'SR_B4'), ('B8', 'B4')]:
                 try:
-                    ndvi = image.normalizedDifference(['SR_B5', 'SR_B4']).rename('NDVI')
+                    ndvi = image.normalizedDifference([nir_band, red_band]).rename('NDVI')
                     result = result.addBand(ndvi)
+                    break
                 except:
-                    try:
-                        ndvi = image.normalizedDifference(['B8', 'B4']).rename('NDVI')
-                        result = result.addBand(ndvi)
-                    except:
-                        pass
-                        
+                    continue
+                    
         if 'ndwi' in indices:
-            try:
-                ndwi = image.normalizedDifference(['B3', 'B5']).rename('NDWI')
-                result = result.addBand(ndwi)
-            except:
+            for green_band, nir_band in [('B3', 'B5'), ('B3', 'B8')]:
                 try:
-                    ndwi = image.normalizedDifference(['B3', 'B8']).rename('NDWI')
+                    ndwi = image.normalizedDifference([green_band, nir_band]).rename('NDWI')
                     result = result.addBand(ndwi)
+                    break
                 except:
-                    pass
+                    continue
                     
         return result
     
@@ -460,8 +537,9 @@ class SatelliteDataPreprocessor:
         self,
         start_year: int,
         end_year: int,
-        indices: Optional[List[str]] = None
-    ) -> Dict[int, Dict[str, Any]]:
+        indices: Optional[List[str]] = None,
+        emit_events: bool = True
+    ) -> Tuple[Dict[int, Dict[str, Any]], ProcessingStats]:
         """
         Obtiene serie temporal multianual de índices espectrales.
         
@@ -469,26 +547,56 @@ class SatelliteDataPreprocessor:
             start_year: Año inicial
             end_year: Año final
             indices: Índices a calcular
+            emit_events: Si debe emitir eventos
             
         Returns:
-            Diccionario con datos por año
+            Tupla de (diccionario con datos por año, estadísticas)
         """
         results = {}
+        stats = ProcessingStats(
+            total_years=end_year - start_year + 1,
+            years_with_data=0,
+            years_without_data=0,
+            total_images=0,
+            filtered_by_cloud=0,
+            collections_used=[],
+            processing_time_seconds=0,
+            errors=[]
+        )
+        
+        start_time = datetime.now()
         
         for year in range(start_year, end_year + 1):
+            year_start = datetime.now()
+            collections = self._get_collection_for_year(year)
+            
+            for col in collections:
+                if col.value not in stats.collections_used:
+                    stats.collections_used.append(col.value)
+            
             try:
+                result = self.query_images(
+                    f"{year}-01-01",
+                    f"{year}-12-31",
+                    year=year
+                )
+                
+                stats.total_images += result.cloud_filter_stats["totalImages"]
+                stats.filtered_by_cloud += result.cloud_filter_stats["filteredByCloud"]
+                
                 composite = self.get_annual_composite(year)
                 
                 if composite is None:
                     results[year] = {
                         'available': False,
-                        'error': 'No images found'
+                        'error': 'No images found after cloud filter'
                     }
+                    stats.years_without_data += 1
                     continue
                     
                 indices_image = self.calculate_indices(composite, indices)
                 
-                stats = indices_image.reduceRegion(
+                stats_region = indices_image.reduceRegion(
                     reducer=ee.Reducer.mean().combine(
                         reducer2=ee.Reducer.stdDev(),
                         sharedInputs=True
@@ -500,23 +608,42 @@ class SatelliteDataPreprocessor:
                 
                 results[year] = {
                     'available': True,
-                    'stats': stats
+                    'stats': stats_region,
+                    'images_used': result.image_count,
+                    'collections': [c.value for c in collections]
                 }
+                stats.years_with_data += 1
+                
+                year_time = (datetime.now() - year_start).total_seconds()
+                self.logger.info(
+                    f"Año {year}: ✓ {result.image_count} imágenes - "
+                    f"Tiempo: {year_time:.2f}s"
+                )
                 
             except Exception as e:
                 results[year] = {
                     'available': False,
                     'error': str(e)
                 }
-                
-        return results
+                stats.errors.append({
+                    'year': year,
+                    'error': str(e)
+                })
+                stats.years_without_data += 1
+                self.logger.error(f"Año {year}: ✗ Error - {str(e)}")
+        
+        stats.processing_time_seconds = (datetime.now() - start_time).total_seconds()
+        
+        return results, stats
 
 
 def preprocess_combeima_basin(
     geojson_path: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    output_dir: str = "./data/geospatial"
+    output_dir: str = "./data/geospatial",
+    emit_events: bool = True,
+    event_config: Optional[Dict] = None
 ) -> Dict[str, Any]:
     """
     Función principal para preprocesar datos de la cuenca del Combeima.
@@ -526,10 +653,14 @@ def preprocess_combeima_basin(
         start_date: Fecha de inicio (YYYY-MM-DD)
         end_date: Fecha de fin (YYYY-MM-DD)
         output_dir: Directorio de salida para datos
+        emit_events: Si debe emitir eventos al bus
+        event_config: Configuración para el bus de eventos
         
     Returns:
         Diccionario con resultados del procesamiento
     """
+    logger = logging.getLogger(__name__)
+    
     if not GEEAuthenticator.is_initialized():
         if not GEEAuthenticator.initialize():
             return {"success": False, "error": "GEE initialization failed"}
@@ -540,7 +671,19 @@ def preprocess_combeima_basin(
     print("=" * 60)
     
     geometry = CombeimaBasinProvider.get_geometry(geojson_path)
-    preprocessor = SatelliteDataPreprocessor(geometry)
+    preprocessor = SatelliteDataPreprocessor(geometry, emit_events=emit_events)
+    
+    event_emitter = None
+    if emit_events:
+        try:
+            event_config = event_config or {}
+            event_emitter = get_event_emitter(event_config)
+        except Exception as e:
+            logger.warning(f"No se pudo inicializar event emitter: {e}")
+    
+    basin_info = CombeimaBasinProvider.get_info()
+    
+    os.makedirs(output_dir, exist_ok=True)
     
     if start_date and end_date:
         year = int(start_date.split('-')[0])
@@ -554,59 +697,125 @@ def preprocess_combeima_basin(
         
         print(f"\n📊 Resultados:")
         print(f"   Imágenes encontradas: {result.image_count}")
+        print(f"   Filtradas por nubosidad: {result.cloud_filter_stats['filteredByCloud']}")
         print(f"   Rango de fechas: {result.date_range[0]} a {result.date_range[1]}")
         
-        os.makedirs(output_dir, exist_ok=True)
         output_file = os.path.join(output_dir, f"query_{year}.json")
         
+        output_data = {
+            'metadata': {
+                'query_date': datetime.now().isoformat(),
+                'basin': basin_info,
+                'cloud_filter_applied': True,
+                'max_cloud_percent': 15
+            },
+            'query_result': result.to_dict()
+        }
+        
         with open(output_file, 'w') as f:
-            json.dump({
-                'query_result': {
-                    'collection_name': result.collection_name,
-                    'image_count': result.image_count,
-                    'date_range': result.date_range,
-                    'images': result.images
-                }
-            }, f, indent=2, default=str)
+            json.dump(output_data, f, indent=2, default=str)
             
         print(f"   ✓ Resultados guardados en {output_file}")
+        
+        if event_emitter:
+            try:
+                event_emitter.emit_historical_images_ready(
+                    date_range=result.date_range,
+                    collections_used=[c.value for c in collections],
+                    image_count=result.image_count,
+                    cloud_filter_applied=True,
+                    max_cloud_percent=15.0,
+                    basin_info=basin_info,
+                    processing_metrics={
+                        "filteredByCloud": result.cloud_filter_stats['filteredByCloud'],
+                        "filterPercent": result.cloud_filter_stats['filterPercent']
+                    }
+                )
+                print("   ✓ Evento IMAGENES_HISTORICAS_LISTAS emitido")
+            except Exception as e:
+                logger.error(f"Error emitiendo evento: {e}")
         
         return {
             "success": True,
             "year": year,
             "collections": [c.value for c in collections],
             "image_count": result.image_count,
-            "output_file": output_file
+            "output_file": output_file,
+            "cloud_filter_stats": result.cloud_filter_stats
         }
         
     else:
-        print("\n📊 Generando serie temporal multianual (1969-2023)...")
+        print(f"\n📊 Generando serie temporal multianual (1969-2023)...")
+        print(f"   Filtro de nubosidad: < 15%")
         
-        series = preprocessor.get_multitemporal_series(
+        series, stats = preprocessor.get_multitemporal_series(
             start_year=1969,
             end_year=2023,
-            indices=['ndvi', 'ndwi']
+            indices=['ndvi', 'ndwi'],
+            emit_events=emit_events
         )
         
         available_years = [y for y, data in series.items() if data.get('available')]
         
-        print(f"\n✅ Años con datos disponibles: {len(available_years)}")
-        print(f"   Período: {min(available_years)} - {max(available_years)}")
+        print(f"\n✅ Procesamiento completado:")
+        print(f"   Años con datos: {stats.years_with_data}/{stats.total_years}")
+        print(f"   Total imágenes: {stats.total_images}")
+        print(f"   Filtradas por nubosidad: {stats.filtered_by_cloud}")
+        print(f"   Tiempo total: {stats.processing_time_seconds:.2f}s")
         
-        os.makedirs(output_dir, exist_ok=True)
+        if stats.errors:
+            print(f"   Errores: {len(stats.errors)}")
+        
         output_file = os.path.join(output_dir, "multitemporal_series.json")
         
+        output_data = {
+            'metadata': {
+                'processing_date': datetime.now().isoformat(),
+                'basin': basin_info,
+                'period': {'start': 1969, 'end': 2023},
+                'cloud_filter_applied': True,
+                'max_cloud_percent': 15,
+                'stats': stats.to_dict()
+            },
+            'series': series
+        }
+        
         with open(output_file, 'w') as f:
-            json.dump(series, f, indent=2, default=str)
+            json.dump(output_data, f, indent=2, default=str)
             
         print(f"   ✓ Serie temporal guardada en {output_file}")
         
+        if event_emitter:
+            try:
+                event_emitter.emit_historical_images_ready(
+                    date_range=("1969-01-01", "2023-12-31"),
+                    collections_used=stats.collections_used,
+                    image_count=stats.total_images,
+                    cloud_filter_applied=True,
+                    max_cloud_percent=15.0,
+                    basin_info=basin_info,
+                    processing_metrics={
+                        "yearsProcessed": stats.total_years,
+                        "yearsWithData": stats.years_with_data,
+                        "yearsWithoutData": stats.years_without_data,
+                        "filteredByCloud": stats.filtered_by_cloud,
+                        "processingTimeSeconds": stats.processing_time_seconds,
+                        "errors": len(stats.errors)
+                    }
+                )
+                print("   ✓ Evento IMAGENES_HISTORICAS_LISTAS emitido")
+            except Exception as e:
+                logger.error(f"Error emitiendo evento: {e}")
+        
         return {
             "success": True,
-            "total_years": 2023 - 1969 + 1,
-            "available_years": len(available_years),
-            "period": f"{min(available_years)}-{max(available_years)}",
-            "output_file": output_file
+            "total_years": stats.total_years,
+            "available_years": stats.years_with_data,
+            "total_images": stats.total_images,
+            "filtered_by_cloud": stats.filtered_by_cloud,
+            "period": f"{min(available_years)}-{max(available_years)}" if available_years else "N/A",
+            "output_file": output_file,
+            "stats": stats.to_dict()
         }
 
 
@@ -642,6 +851,18 @@ if __name__ == "__main__":
         help="Directorio de salida"
     )
     parser.add_argument(
+        "--no-events",
+        action="store_true",
+        help="No emitir eventos"
+    )
+    parser.add_argument(
+        "--event-backend",
+        type=str,
+        choices=["local", "redis", "rabbitmq"],
+        default="local",
+        help="Backend de eventos a usar"
+    )
+    parser.add_argument(
         "--auth-service-account",
         type=str,
         default=None,
@@ -662,11 +883,18 @@ if __name__ == "__main__":
             key_path=args.auth_key_path
         )
     
+    event_config = {
+        'backend': args.event_backend,
+        'local': {'storage_dir': './data/events'}
+    }
+    
     result = preprocess_combeima_basin(
         geojson_path=args.geojson,
         start_date=args.start_date,
         end_date=args.end_date,
-        output_dir=args.output_dir
+        output_dir=args.output_dir,
+        emit_events=not args.no_events,
+        event_config=event_config
     )
     
     if result.get("success"):
