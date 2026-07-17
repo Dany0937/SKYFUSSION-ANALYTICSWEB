@@ -1,0 +1,261 @@
+services:
+
+  # ─── Backend ───
+  backend-api:
+    build:
+      context: services/backend-node
+      dockerfile: Dockerfile
+    container_name: skyfusion-api
+    ports:
+      - "3000:3000"
+    env_file: services/backend-node/.env
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./services/backend-node/src:/app/src
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── Databases ───
+  neo4j:
+    image: neo4j:5.18-community
+    container_name: skyfusion-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-password}
+      NEO4J_PLUGINS: '["apoc"]'
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/import
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD:-password}", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: skyfusion-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: skyfusion
+      POSTGRES_USER: skyfusion
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-skyfusion_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skyfusion"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ─── Message Broker ───
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: skyfusion-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-skyfusion}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-skyfusion_mq}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ─── Python Agents ───
+  geospatial-agent:
+    build:
+      context: .
+      dockerfile: agents/python/Dockerfile
+      args:
+        AGENT_NAME: geospatial_agent
+    container_name: skyfusion-geospatial
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file: agents/python/.env
+    environment:
+      AGENT_NAME: geospatial_agent
+      AGENT__RABBITMQ__HOST: rabbitmq
+    volumes:
+      - ./agents/python:/app/agents/python
+      - satelite_data:/data/satellite
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    profiles:
+      - all
+      - agents
+
+  vision-agent:
+    build:
+      context: .
+      dockerfile: agents/python/Dockerfile
+      args:
+        AGENT_NAME: vision_agent
+    container_name: skyfusion-vision
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file: agents/python/.env
+    environment:
+      AGENT_NAME: vision_agent
+      AGENT__RABBITMQ__HOST: rabbitmq
+    volumes:
+      - ./agents/python:/app/agents/python
+      - satelite_data:/data/satellite
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    profiles:
+      - all
+      - agents
+
+  oracle-agent:
+    build:
+      context: .
+      dockerfile: agents/python/Dockerfile
+      args:
+        AGENT_NAME: oracle_agent
+    container_name: skyfusion-oracle
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file: agents/python/.env
+    environment:
+      AGENT_NAME: oracle_agent
+      AGENT__RABBITMQ__HOST: rabbitmq
+    volumes:
+      - ./agents/python:/app/agents/python
+      - ./models:/models
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    profiles:
+      - all
+      - agents
+      - gpu
+
+  reporting-agent:
+    build:
+      context: .
+      dockerfile: agents/python/Dockerfile
+      args:
+        AGENT_NAME: reporting_agent
+    container_name: skyfusion-reporting
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    env_file: agents/python/.env
+    environment:
+      AGENT_NAME: reporting_agent
+      AGENT__RABBITMQ__HOST: rabbitmq
+    volumes:
+      - ./agents/python:/app/agents/python
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    profiles:
+      - all
+      - agents
+
+  # ─── Reverse Proxy ───
+  nginx:
+    image: nginx:alpine
+    container_name: skyfusion-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend-api
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    profiles:
+      - all
+      - production
+
+  # ─── Monitoring ───
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: skyfusion-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    profiles:
+      - all
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: skyfusion-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    networks:
+      - skyfusion-net
+    restart: unless-stopped
+    profiles:
+      - all
+      - monitoring
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  postgres_data:
+  rabbitmq_data:
+  satelite_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  skyfusion-net:
+    driver: bridge

@@ -15,7 +15,16 @@ export const EVENTS = {
   PREDICTION_REQUESTED: 'prediction:requested',
   PREDICTION_COMPLETED: 'prediction:completed',
   SYNC_REQUIRED: 'sync:required',
-  DATA_INGESTED: 'data:ingested'
+  DATA_INGESTED: 'data:ingested',
+  ANALYSIS_REQUESTED: 'analysis:requested',
+  REPORT_READY: 'report:ready',
+  GEOSPATIAL_COMPLETED: 'geospatial:completed',
+  VISION_COMPLETED: 'vision:completed',
+  PIPELINE_STARTED: 'pipeline:started',
+  PIPELINE_COMPLETED: 'pipeline:completed',
+  PIPELINE_ERROR: 'pipeline:error',
+  AGENT_HEALTH_CHECK: 'agent:health:check',
+  AGENT_STATUS_CHANGED: 'agent:status:changed'
 };
 
 class EventBus extends EventEmitter {
@@ -58,6 +67,41 @@ class EventBus extends EventEmitter {
       logger.info('Event: Sync required', { 
         source: data.source,
         timestamp: data.timestamp 
+      });
+    });
+
+    this.on(EVENTS.ANALYSIS_REQUESTED, (data) => {
+      logger.info('Event: Analysis requested', { 
+        requestId: data.request_id,
+        collections: data.collections
+      });
+    });
+
+    this.on(EVENTS.REPORT_READY, (data) => {
+      logger.info('Event: Report ready', { 
+        requestId: data.request_id,
+        alertLevel: data.raw_data?.alert_level
+      });
+    });
+
+    this.on(EVENTS.PIPELINE_STARTED, (data) => {
+      logger.info('Event: Pipeline started', { 
+        requestId: data.request_id,
+        timestamp: data.timestamp
+      });
+    });
+
+    this.on(EVENTS.PIPELINE_COMPLETED, (data) => {
+      logger.info('Event: Pipeline completed', { 
+        requestId: data.request_id,
+        duration: data.duration
+      });
+    });
+
+    this.on(EVENTS.PIPELINE_ERROR, (data) => {
+      logger.error('Event: Pipeline error', { 
+        requestId: data.request_id,
+        error: data.error
       });
     });
   }
