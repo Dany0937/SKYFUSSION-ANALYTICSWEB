@@ -1,7 +1,7 @@
 # 🌊 Skyfusion Analytics
 
 ![Status](https://img.shields.io/badge/Status-Development-blue)
-![Node.js](https://img.shields.io/badge/Node.js-20.x%20LTS-339933)
+![Node.js](<https://img.shields.io/badge/Node.js-20.x%20LTS-339933>)
 ![Python](https://img.shields.io/badge/Python-3.11.x-3776AB)
 ![Neo4j](https://img.shields.io/badge/Neo4j-5.18-008EB1)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.15.x-FF6F00)
@@ -32,13 +32,13 @@ Skyfusion Analytics representa un paradigma en la gestión ambiental digital. Au
 
 ### Principios Arquitecturales
 
-| Principio | Implementación |
-|-----------|----------------|
-| **Domain-Driven Design** | Bounded contexts separados para cada dominio (agua, vegetación, clima, alertas) |
-| **Extensibilidad** | Plugins寒w para incorporar nuevas fuentes de datos y sensores |
-| **Escalabilidad Horizontal** | Contenedores Docker/Kubernetes para procesamiento paralelo |
-| **Multi-tenant** | Aislamiento de datos por región/organización |
-| **API-First** | Arquitectura RESTful para integración con sistemas externos |
+| Principio                          | Implementación                                                                  |
+| ---------------------------------- | -------------------------------------------------------------------------------- |
+| **Domain-Driven Design**     | Bounded contexts separados para cada dominio (agua, vegetación, clima, alertas) |
+| **Extensibilidad**           | Plugins寒w para incorporar nuevas fuentes de datos y sensores                    |
+| **Escalabilidad Horizontal** | Contenedores Docker/Kubernetes para procesamiento paralelo                       |
+| **Multi-tenant**             | Aislamiento de datos por región/organización                                   |
+| **API-First**                | Arquitectura RESTful para integración con sistemas externos                     |
 
 ### Aplicaciones Transversales
 
@@ -60,12 +60,12 @@ La región del Tolima y particularmente el municipio de Ibagué enfrentan desaf�
 
 #### Fenómeno de El Niño
 
-| Aspecto | Impacto |
-|---------|---------|
-| **Precipitación** | Reducción del 40-60% durante eventos fuertes |
-| **Temperatura** | Incremento de 2-4°C en promedio |
-| **Evapotranspiración** | Aumento del 30% en demanda hídrica |
-| **Duración** | 6-18 meses por evento |
+| Aspecto                       | Impacto                                       |
+| ----------------------------- | --------------------------------------------- |
+| **Precipitación**      | Reducción del 40-60% durante eventos fuertes |
+| **Temperatura**         | Incremento de 2-4°C en promedio              |
+| **Evapotranspiración** | Aumento del 30% en demanda hídrica           |
+| **Duración**           | 6-18 meses por evento                         |
 
 #### Crisis de Oferta Hídrica
 
@@ -103,24 +103,24 @@ graph TB
         DRONE["🚁 Drones UAV<br/>(DJI M300 + P1)"]
         IOT["📡 Red IoT<br/>(ESP32 + Sensores)"]
     end
-    
+  
     subgraph Processing["⚙️ MOTOR DE PROCESAMIENTO"]
         PYTHON["🐍 Python Engine"]
         OPENV["📷 OpenCV 4.9"]
         PANDAS["📊 Pandas 2.2"]
     end
-    
+  
     subgraph AI["🤖 CAPA DE INTELIGENCIA"]
         TF["🧠 TensorFlow 2.15"]
         LLM["✨ IA Generativa<br/>(GPT-4)"]
     end
-    
+  
     subgraph Output["📤 CAPA DE PRESENTACIÓN"]
         DASH["📊 Dashboard Interactivo"]
         API["🔌 API REST"]
         ALERT["🚨 Sistema de Alertas"]
     end
-    
+  
     GEE --> PYTHON
     DRONE --> PYTHON
     IOT --> PYTHON
@@ -140,12 +140,14 @@ graph TB
 #### Capa de Ingesta
 
 Responsabilidades:
+
 - Conexión con APIs de terceros (Google Earth Engine, proveedores de drones)
 - Reception de telemetry desde sensores IoT via MQTT
 - Normalización de formatos heterogéneos
 - Validación de integridad de datos
 
 Tecnologías:
+
 - **Google Earth Engine Client** (`earthengine-api` Python)
 - **MQTT Broker** (Mosquitto/EMQX)
 - **FUSE.js** para validación de archivos geoespaciales
@@ -153,12 +155,14 @@ Tecnologías:
 #### Capa de Procesamiento
 
 Responsabilidades:
+
 - Preprocesamiento de imágenes satelitales y UAV
 - Calculo de índices espectrales (NDVI, NDWI)
 - Análisis estadístico de series temporales
 - Generación de productos geoespaciales intermedios
 
 Tecnologías:
+
 - **Python 3.11** con entornos virtuales
 - **OpenCV 4.9** para visión computacional
 - **Pandas 2.2** + **NumPy** para análisis numérico
@@ -167,12 +171,14 @@ Tecnologías:
 #### Capa de Inteligencia Artificial
 
 Responsabilidades:
+
 - Entrenamiento y served de modelos predictivos
 - Inferencia en tiempo real
 - Generación de narrativas en lenguaje natural
 - Detección de anomalías
 
 Tecnologías:
+
 - **TensorFlow 2.15** (modelos LSTM-CNN híbridos)
 - **OpenAI GPT-4 API** para generación de texto
 - **TensorFlow Serving** para producción
@@ -180,12 +186,14 @@ Tecnologías:
 #### Capa de Presentación
 
 Responsabilidades:
+
 - Visualización de datos geoespaciales
 - Renderizado de mapas interactivos
 - Presentación de alertas y predicciones
 - Interfaz de administración
 
 Tecnologías:
+
 - **Leaflet/Mapbox GL JS** para mapas
 - **Chart.js** para gráficos temporales
 - **Vue.js 3** para UI reactiva
@@ -200,33 +208,33 @@ El módulo de input geoespacial es el punto de entrada fundamental para cualquie
 
 ### Métodos de Input Soportados
 
-| Método | Descripción | Precisión | Formatos Soportados |
-|--------|-------------|-----------|---------------------|
-| **Coordenadas GPS** | Punto único con radio de influencia | Depende del dispositivo | Lat/Lon decimales |
-| **Polígono Interactivo** | Dibujo manual en mapa | Configurable (10m-1km) | GeoJSON, WKT |
-| **Carga Vectorial** | Importación de archivos predefinidos | Depende de fuente | GeoJSON, KML, Shapefile (.shp) |
+| Método                         | Descripción                          | Precisión              | Formatos Soportados            |
+| ------------------------------- | ------------------------------------- | ----------------------- | ------------------------------ |
+| **Coordenadas GPS**       | Punto único con radio de influencia  | Depende del dispositivo | Lat/Lon decimales              |
+| **Polígono Interactivo** | Dibujo manual en mapa                 | Configurable (10m-1km)  | GeoJSON, WKT                   |
+| **Carga Vectorial**       | Importación de archivos predefinidos | Depende de fuente       | GeoJSON, KML, Shapefile (.shp) |
 
 ### Diagrama de Flujo del Módulo
 
 ```mermaid
 flowchart TD
     A["📍 Usuario"] --> B{"Método de Input"}
-    
+  
     B -->|"Coordenadas"| C["Ingresar Lat/Lon"]
     B -->|"Polígono"| D["Mapa Interactivo"]
     B -->|"Archivo"| E["Carga de Archivo"]
-    
+  
     C --> F["Validar Coordenadas"]
     D --> G["Digitalizar Área"]
     E --> H["Parsear Archivo"]
-    
+  
     F --> I{"¿Válido?"}
     G --> I
     H --> I
-    
+  
     I -->|"Sí"| J["Convertir a GeoJSON"]
     I -->|"No"| K["Error + Retry"]
-    
+  
     J --> L["Guardar en Neo4j"]
     L --> M["Indexar Espacialmente"]
     M --> N["✓ Área Definida"]
@@ -315,11 +323,11 @@ const validateGeoJSON = (geojson) => {
     if (!feature.geometry) {
       errors.push(`Feature ${index}: Falta geometría`);
     }
-    
+  
     if (!isValidCoordinates(feature.geometry?.coordinates)) {
       errors.push(`Feature ${index}: Coordenadas inválidas`);
     }
-    
+  
     // Verificar bounding box razonable para Colombia
     const coords = feature.geometry?.coordinates;
     if (coords) {
@@ -343,24 +351,24 @@ const validateGeoJSON = (geojson) => {
 
 ### Tabla Comparativa de Tecnologías
 
-| Componente | Tecnología | Versión | Función Core | Documentación |
-|-------------|------------|---------|--------------|---------------|
-| **Backend Core** | Node.js | 20.x LTS | API REST, orquestación de servicios | [docs](https://nodejs.org/docs/) |
-| **Framework HTTP** | Express.js | 4.18.x | Middleware, routing, handlers | [docs](https://expressjs.com/) |
-| **Base de Datos Grafo** | Neo4j | 5.18 Community | Relaciones geoespaciales complejas | [docs](https://neo4j.com/docs/) |
-| **Data Engine** | Python | 3.11.x | Procesamiento científico de datos | [docs](https://docs.python.org/3.11/) |
-| **Visión Computacional** | OpenCV | 4.9.x | Segmentación, detección, procesamiento | [docs](https://docs.opencv.org/4.9/) |
-| **Análisis Numérico** | Pandas | 2.2.x | Series temporales, manipulación tabular | [docs](https://pandas.pydata.org/docs/) |
-| **Computación Numérica** | NumPy | 1.26.x | Arrays, algebra lineal | [docs](https://numpy.org/doc/stable/) |
-| **IA Predictiva** | TensorFlow | 2.15.x | Modelos LSTM/CNN híbridos | [docs](https://www.tensorflow.org/api_docs/) |
-| **IA Generativa** | OpenAI GPT-4 | API v1 | Generación de narrativas NL | [docs](https://platform.openai.com/docs/) |
-| **Mapas Web** | Leaflet | 1.9.x | Visualización geoespacial interactiva | [docs](https://leafletjs.com/reference.html) |
-| **Mapas Avanzados** | Mapbox GL JS | 3.x | Mapas 3D, estilos custom | [docs](https://docs.mapbox.com/mapbox-gl-js/) |
-| **Gráficos** | Chart.js | 4.x | Series temporales, KPIs | [docs](https://www.chartjs.org/docs/) |
-| **Frontend Framework** | Vue.js | 3.4.x | UI reactiva, componentes | [docs](https://vuejs.org/guide/) |
-| **Teledetección** | Google Earth Engine | API | Acceso a Landsat, Sentinel | [docs](https://developers.google.com/earth-engine/) |
-| **Telemetría IoT** | MQTT | 5.0 | Protocolo pub/sub sensores | [docs](https://mqtt.org/) |
-| **Orquestación** | Docker | 24.x | Contenedores, aislamiento | [docs](https://docs.docker.com/) |
+| Componente                       | Tecnología         | Versión       | Función Core                            | Documentación                                     |
+| -------------------------------- | ------------------- | -------------- | ---------------------------------------- | -------------------------------------------------- |
+| **Backend Core**           | Node.js             | 20.x LTS       | API REST, orquestación de servicios     | [docs](https://nodejs.org/docs/)                    |
+| **Framework HTTP**         | Express.js          | 4.18.x         | Middleware, routing, handlers            | [docs](https://expressjs.com/)                      |
+| **Base de Datos Grafo**    | Neo4j               | 5.18 Community | Relaciones geoespaciales complejas       | [docs](https://neo4j.com/docs/)                     |
+| **Data Engine**            | Python              | 3.11.x         | Procesamiento científico de datos       | [docs](https://docs.python.org/3.11/)               |
+| **Visión Computacional**  | OpenCV              | 4.9.x          | Segmentación, detección, procesamiento | [docs](https://docs.opencv.org/4.9/)                |
+| **Análisis Numérico**    | Pandas              | 2.2.x          | Series temporales, manipulación tabular | [docs](https://pandas.pydata.org/docs/)             |
+| **Computación Numérica** | NumPy               | 1.26.x         | Arrays, algebra lineal                   | [docs](https://numpy.org/doc/stable/)               |
+| **IA Predictiva**          | TensorFlow          | 2.15.x         | Modelos LSTM/CNN híbridos               | [docs](https://www.tensorflow.org/api_docs/)        |
+| **IA Generativa**          | OpenAI GPT-4        | API v1         | Generación de narrativas NL             | [docs](https://platform.openai.com/docs/)           |
+| **Mapas Web**              | Leaflet             | 1.9.x          | Visualización geoespacial interactiva   | [docs](https://leafletjs.com/reference.html)        |
+| **Mapas Avanzados**        | Mapbox GL JS        | 3.x            | Mapas 3D, estilos custom                 | [docs](https://docs.mapbox.com/mapbox-gl-js/)       |
+| **Gráficos**              | Chart.js            | 4.x            | Series temporales, KPIs                  | [docs](https://www.chartjs.org/docs/)               |
+| **Frontend Framework**     | Vue.js              | 3.4.x          | UI reactiva, componentes                 | [docs](https://vuejs.org/guide/)                    |
+| **Teledetección**         | Google Earth Engine | API            | Acceso a Landsat, Sentinel               | [docs](https://developers.google.com/earth-engine/) |
+| **Telemetría IoT**        | MQTT                | 5.0            | Protocolo pub/sub sensores               | [docs](https://mqtt.org/)                           |
+| **Orquestación**          | Docker              | 24.x           | Contenedores, aislamiento                | [docs](https://docs.docker.com/)                    |
 
 ### Arquitectura Detallada por Capa
 
@@ -408,20 +416,20 @@ backend/
 
 **Endpoints API Principales:**
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/v1/zones` | Listar todas las zonas de estudio |
-| POST | `/api/v1/zones` | Crear nueva zona (requiere GeoJSON) |
-| GET | `/api/v1/zones/:id` | Obtener zona por ID |
-| PUT | `/api/v1/zones/:id` | Actualizar zona |
-| DELETE | `/api/v1/zones/:id` | Eliminar zona |
-| POST | `/api/v1/analysis/ndvi` | Calcular NDVI para zona |
-| POST | `/api/v1/analysis/ndwi` | Calcular NDWI para zona |
-| GET | `/api/v1/analysis/trends` | Obtener tendencias temporales |
-| POST | `/api/v1/predictions/flow` | Predecir caudal |
-| GET | `/api/v1/predictions/alerts` | Obtener alertas activas |
-| POST | `/api/v1/reports/generate` | Generar reporte con IA |
-| GET | `/api/v1/reports/history` | Historial de reportes |
+| Método | Endpoint                       | Descripción                        |
+| ------- | ------------------------------ | ----------------------------------- |
+| GET     | `/api/v1/zones`              | Listar todas las zonas de estudio   |
+| POST    | `/api/v1/zones`              | Crear nueva zona (requiere GeoJSON) |
+| GET     | `/api/v1/zones/:id`          | Obtener zona por ID                 |
+| PUT     | `/api/v1/zones/:id`          | Actualizar zona                     |
+| DELETE  | `/api/v1/zones/:id`          | Eliminar zona                       |
+| POST    | `/api/v1/analysis/ndvi`      | Calcular NDVI para zona             |
+| POST    | `/api/v1/analysis/ndwi`      | Calcular NDWI para zona             |
+| GET     | `/api/v1/analysis/trends`    | Obtener tendencias temporales       |
+| POST    | `/api/v1/predictions/flow`   | Predecir caudal                     |
+| GET     | `/api/v1/predictions/alerts` | Obtener alertas activas             |
+| POST    | `/api/v1/reports/generate`   | Generar reporte con IA              |
+| GET     | `/api/v1/reports/history`    | Historial de reportes               |
 
 #### Motor Python 3.11
 
@@ -554,13 +562,13 @@ RETURN path
 
 ### Tabla Comparativa de Fuentes de Datos
 
-| Fuente | Plataforma/Sensor | Resolución Espacial | Resolución Temporal | Variables Medidas | Latencia | Costo Operativo |
-|--------|-------------------|--------------------|---------------------|-------------------|----------|-----------------|
-| **Landsat 8/9** | OLI/TIRS | 30m (bands), 15m (pan) | 16 días | NDVI, NDWI, LST, Reflectancia | 24-48h | Gratuito |
-| **Sentinel-2** | MSI | 10m (VNIR), 20m (SWIR) | 5 días | NDVI, NDWI, Clorofila, Turbidez | 1-6h | Gratuito |
-| **MODIS** | Terra/Aqua | 250m-1km | Diario | Temperatura, Vegetación, Nieve | 2-4h | Gratuito |
-| **Dron DJI M300** | Zenmuse P1 | 5-20cm | Bajo demanda | RGB, Multiespectral, Termal | <1h | Alto |
-| **Sensores IoT** | ESP32 + HW | Punto (estación) | 1-5 min | Caudal, Precipitación, T°, Humedad | <1min | Medio |
+| Fuente                  | Plataforma/Sensor | Resolución Espacial   | Resolución Temporal | Variables Medidas                    | Latencia | Costo Operativo |
+| ----------------------- | ----------------- | ---------------------- | -------------------- | ------------------------------------ | -------- | --------------- |
+| **Landsat 8/9**   | OLI/TIRS          | 30m (bands), 15m (pan) | 16 días             | NDVI, NDWI, LST, Reflectancia        | 24-48h   | Gratuito        |
+| **Sentinel-2**    | MSI               | 10m (VNIR), 20m (SWIR) | 5 días              | NDVI, NDWI, Clorofila, Turbidez      | 1-6h     | Gratuito        |
+| **MODIS**         | Terra/Aqua        | 250m-1km               | Diario               | Temperatura, Vegetación, Nieve      | 2-4h     | Gratuito        |
+| **Dron DJI M300** | Zenmuse P1        | 5-20cm                 | Bajo demanda         | RGB, Multiespectral, Termal          | <1h      | Alto            |
+| **Sensores IoT**  | ESP32 + HW        | Punto (estación)      | 1-5 min              | Caudal, Precipitación, T°, Humedad | <1min    | Medio           |
 
 ### Diagrama de Integración de Fuentes
 
@@ -571,23 +579,23 @@ graph LR
         S2["Sentinel-2"]
         MOD["MODIS"]
     end
-    
+  
     subgraph Drone["🚁 DRONES"]
         DJI["DJI M300 RTK"]
         CAM["Cámaras"]
     end
-    
+  
     subgraph Field["📡 CAMPO (IoT)"]
         MET["Estación Meteorológica"]
         HID["Sensor Hidrológico"]
         SUELO["Sensor Suelo"]
     end
-    
+  
     subgraph Cloud["☁️ PROCESAMIENTO"]
         GEE["Google Earth Engine"]
         PROC["Python Engine"]
     end
-    
+  
     L8 --> GEE
     S2 --> GEE
     MOD --> GEE
@@ -596,7 +604,7 @@ graph LR
     MET --> PROC
     HID --> PROC
     SUELO --> PROC
-    
+  
     GEE --> PROC
     PROC --> DB[(Neo4j)]
 ```
@@ -611,33 +619,33 @@ ee.Initialize()
 def get_ndvi_time_series(geometry, start_date, end_date):
     """
     Obtiene serie temporal NDVI para un polígono GeoJSON.
-    
+  
     Args:
         geometry: GeoJSON polygon coordinates
         start_date: Fecha inicio (YYYY-MM-DD)
         end_date: Fecha fin (YYYY-MM-DD)
-    
+  
     Returns:
         DataFrame con valores NDVI por fecha
     """
     # Definir área de estudio
     aoi = ee.Geometry.Polygon(geometry['coordinates'])
-    
+  
     # Colección Sentinel-2
     collection = (ee.ImageCollection('COPERNICUS/S2_HARMONIZED')
         .filterDate(start_date, end_date)
         .filterBounds(aoi)
         .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20)))
-    
+  
     # Función para calcular NDVI
     def calc_ndvi(image):
         ndvi = image.normalizedDifference(['B8', 'B4']).rename('NDVI')
         return image.addBands(ndvi).copyProperties(
             image, ['system:time_start'])
-    
+  
     # Mapear sobre colección
     ndvi_collection = collection.map(calc_ndvi)
-    
+  
     # Reducir a la media del área
     def reduce_region(image):
         stats = image.select('NDVI').reduceRegion(
@@ -651,10 +659,10 @@ def get_ndvi_time_series(geometry, start_date, end_date):
             'ndvi_mean': stats.get('NDVI'),
             'ndvi_std': stats.get('NDVI_stdDev')
         })
-    
+  
     features = ndvi_collection.map(reduce_region)
     fc = features.filter(ee.Filter.notNull(['ndvi_mean']))
-    
+  
     # Exportar a DataFrame (via Earth Engine API)
     return ee.data.computeFeatures({
         'expression': fc,
@@ -677,9 +685,9 @@ client.subscribe('sensors/combeima/#');
 client.on('message', async (topic, message) => {
     const [,, stationId, sensorType] = topic.split('/');
     const data = JSON.parse(message);
-    
+  
     const session = driver.session();
-    
+  
     try {
         // Crear medición y relacionar
         await session.run(`
@@ -697,10 +705,10 @@ client.on('message', async (topic, message) => {
             value: data.value,
             timestamp: data.timestamp
         });
-        
+      
         // Verificar umbrales para alertas
         await checkThresholds(sensorType, data.value);
-        
+      
     } finally {
         await session.close();
     }
@@ -713,7 +721,7 @@ async function checkThresholds(sensorType, value) {
         temperatura: { min: -5, max: 45 },
         humedad: { min: 10, max: 100 }
     };
-    
+  
     const t = thresholds[sensorType];
     if (t && (value < t.min || value > t.max)) {
         // Generar alerta
@@ -733,31 +741,31 @@ flowchart LR
     subgraph Ingest["📥 INGESTA"]
         RAW["Datos Crutos"]
     end
-    
+  
     subgraph Pre["🔧 PREPROCESAMIENTO"]
         CAL["Calibración"]
         ATM["Corrección Atmosférica"]
         REG["Registro Geométrico"]
     end
-    
+  
     subgraph Proc["⚡ PROCESAMIENTO"]
         SEG["Segmentación"]
         EXT["Extracción Características"]
         IND["Cálculo Índices"]
     end
-    
+  
     subgraph Analysis["📊 ANÁLISIS"]
         STA["Estadístico"]
         TEM["Series Temporales"]
         PRE["Predicción"]
     end
-    
+  
     subgraph Output["📤 OUTPUT"]
         DB[(Almacenamiento)]
         VIZ["Visualización"]
         REP["Reportes"]
     end
-    
+  
     RAW --> CAL --> ATM --> REG
     REG --> SEG --> EXT --> IND
     IND --> STA
@@ -780,31 +788,31 @@ class WaterBodySegmentator:
     Segmenta cuerpos de agua utilizando umbrales en espacio de color
     y refinamiento con operaciones morfológicas.
     """
-    
+  
     def __init__(self, config: dict = None):
         self.config = config or {
             'ndwi_threshold': 0.0,
             'kernel_size': 5,
             'min_area_px': 100
         }
-    
+  
     def segment(self, green_band: np.ndarray, nir_band: np.ndarray) -> dict:
         """
         Segmenta cuerpos de agua usando NDWI modificado.
-        
+      
         Args:
             green_band: Banda verde (Green)
             nir_band: Banda infrarroja cercana (NIR)
-        
+      
         Returns:
             Dictionary con máscara y estadísticas
         """
         # Calcular NDWI
         ndwi = self._calculate_ndwi(green_band, nir_band)
-        
+      
         # Aplicar umbral
         mask = (ndwi > self.config['ndwi_threshold']).astype(np.uint8)
-        
+      
         # Operaciones morfológicas
         kernel = cv2.getStructuringElement(
             cv2.MORPH_ELLIPSE,
@@ -812,47 +820,47 @@ class WaterBodySegmentator:
         )
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        
+      
         # Filtrar por área mínima
         mask = self._filter_by_area(mask)
-        
+      
         # Calcular estadísticas
         stats = self._compute_statistics(mask, ndwi)
-        
+      
         return {
             'mask': mask,
             'ndwi': ndwi,
             'statistics': stats
         }
-    
+  
     def _calculate_ndwi(self, green: np.ndarray, nir: np.ndarray) -> np.ndarray:
         """NDWI = (Green - NIR) / (Green + NIR)"""
         green = green.astype(np.float32)
         nir = nir.astype(np.float32)
-        
+      
         denominator = green + nir + 1e-10
         ndwi = (green - nir) / denominator
-        
+      
         return np.clip(ndwi, -1, 1)
-    
+  
     def _filter_by_area(self, mask: np.ndarray) -> np.ndarray:
         """Elimina regiones pequeñas (ruido)."""
         num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
             mask, connectivity=8
         )
-        
+      
         filtered_mask = np.zeros_like(mask)
         for i in range(1, num_labels):  # Skip background
             if stats[i, cv2.CC_STAT_AREA] >= self.config['min_area_px']:
                 filtered_mask[labels == i] = 1
-        
+      
         return filtered_mask
-    
+  
     def _compute_statistics(self, mask: np.ndarray, ndwi: np.ndarray) -> dict:
         """Calcula estadísticas de la segmentación."""
         water_pixels = mask == 1
         total_pixels = mask.size
-        
+      
         return {
             'water_pixels': int(np.sum(water_pixels)),
             'water_percentage': float(np.sum(water_pixels) / total_pixels * 100),
@@ -875,7 +883,7 @@ class TimeSeriesAnalyzer:
     Analiza series temporales de datos de sensores.
     Calcula tendencias, estacionalidad y anomalías.
     """
-    
+  
     def __init__(self, df: pd.DataFrame):
         """
         Args:
@@ -884,11 +892,11 @@ class TimeSeriesAnalyzer:
         self.df = df.copy()
         self.df['timestamp'] = pd.to_datetime(self.df['timestamp'])
         self.df = self.df.set_index('timestamp').sort_index()
-    
+  
     def calculate_trend(self, window: int = 30) -> pd.Series:
         """
         Calcula tendencia usando media móvil.
-        
+      
         Returns:
             Serie con valores de tendencia
         """
@@ -897,15 +905,15 @@ class TimeSeriesAnalyzer:
             center=True,
             min_periods=1
         ).mean()
-    
+  
     def detect_anomalies(self, method: str = 'iqr', threshold: float = 1.5) -> pd.Series:
         """
         Detecta anomalías usando IQR o Z-score.
-        
+      
         Args:
             method: 'iqr' o 'zscore'
             threshold: Multiplicador para IQR o umbral Z-score
-        
+      
         Returns:
             Boolean Series indicando anomalías
         """
@@ -916,46 +924,46 @@ class TimeSeriesAnalyzer:
             lower = q1 - threshold * iqr
             upper = q3 + threshold * iqr
             return (self.df['value'] < lower) | (self.df['value'] > upper)
-        
+      
         elif method == 'zscore':
             z_scores = np.abs(
                 (self.df['value'] - self.df['value'].mean()) / 
                 self.df['value'].std()
             )
             return z_scores > threshold
-    
+  
     def seasonal_decomposition(self, period: int = 24) -> dict:
         """
         Descompone la serie en tendencia, estacionalidad y residuo.
-        
+      
         Args:
             period: Período de estacionalidad (horas para datos horarios)
-        
+      
         Returns:
             Dictionary con componentes
         """
         from statsmodels.tsa.seasonal import seasonal_decompose
-        
+      
         result = seasonal_decompose(
             self.df['value'].dropna(),
             model='additive',
             period=period
         )
-        
+      
         return {
             'trend': result.trend,
             'seasonal': result.seasonal,
             'residual': result.resid,
             'observed': result.observed
         }
-    
+  
     def calculate_correlations(self, other: pd.DataFrame) -> pd.Series:
         """
         Calcula correlación con otra variable.
-        
+      
         Args:
             other: DataFrame con índices de tiempo alineados
-        
+      
         Returns:
             Series con coeficientes de correlación móvil
         """
@@ -966,7 +974,7 @@ class TimeSeriesAnalyzer:
             right_index=True,
             how='outer'
         ).fillna(method='ffill').fillna(method='bfill')
-        
+      
         return merged['value'].corr(merged[other.columns[0]])
 ```
 
@@ -982,7 +990,7 @@ class SpectralIndices:
     Biblioteca de cálculos para índices espectrales.
     Optimizado para procesamiento en batch de imágenes satelitales.
     """
-    
+  
     @staticmethod
     def calculate_ndvi(
         nir: np.ndarray, 
@@ -991,33 +999,33 @@ class SpectralIndices:
     ) -> np.ndarray:
         """
         Calcula NDVI (Normalized Difference Vegetation Index).
-        
+      
         NDVI = (NIR - Red) / (NIR + Red)
-        
+      
         Args:
             nir: Banda NIR (infrarrojo cercano)
             red: Banda Red (rojo)
             output_scale: Si True, escala a 0-255 para visualización
-        
+      
         Returns:
             Array NDVI normalizado
         """
         nir = nir.astype(np.float32)
         red = red.astype(np.float32)
-        
+      
         denominator = nir + red
         ndvi = np.where(
             denominator != 0,
             (nir - red) / denominator,
             0
         )
-        
+      
         if output_scale:
             # Escalar de [-1, 1] a [0, 255]
             return ((ndvi + 1) * 127.5).astype(np.uint8)
-        
+      
         return ndvi
-    
+  
     @staticmethod
     def calculate_ndwi(
         green: np.ndarray,
@@ -1026,32 +1034,32 @@ class SpectralIndices:
     ) -> np.ndarray:
         """
         Calcula NDWI (Normalized Difference Water Index).
-        
+      
         NDWI = (Green - NIR) / (Green + NIR)
-        
+      
         Args:
             green: Banda Green (verde)
             nir: Banda NIR (infrarrojo cercano)
             output_scale: Si True, escala a 0-255
-        
+      
         Returns:
             Array NDWI normalizado
         """
         green = green.astype(np.float32)
         nir = nir.astype(np.float32)
-        
+      
         denominator = green + nir
         ndwi = np.where(
             denominator != 0,
             (green - nir) / denominator,
             0
         )
-        
+      
         if output_scale:
             return ((ndwi + 1) * 127.5).astype(np.uint8)
-        
+      
         return ndwi
-    
+  
     @staticmethod
     def calculate_evi(
         nir: np.ndarray,
@@ -1064,37 +1072,37 @@ class SpectralIndices:
     ) -> np.ndarray:
         """
         Calcula EVI (Enhanced Vegetation Index).
-        
+      
         EVI = G * (NIR - Red) / (NIR + C1*Red - C2*Blue + L)
-        
+      
         Args:
             nir, red, blue: Bandas espectrales
             g, c1, c2, l: Coeficientes del índice
-        
+      
         Returns:
             Array EVI
         """
         if blue is None:
             raise ValueError("Blue band es requerida para EVI")
-        
+      
         nir = nir.astype(np.float32)
         red = red.astype(np.float32)
         blue = blue.astype(np.float32)
-        
+      
         denominator = nir + c1 * red - c2 * blue + l
         evi = np.where(
             denominator != 0,
             g * (nir - red) / denominator,
             0
         )
-        
+      
         return np.clip(evi, -1, 1)
-    
+  
     @staticmethod
     def interpret_ndvi(ndvi_value: float) -> dict:
         """
         Interpreta valor NDVI para categorización.
-        
+      
         Returns:
             Dictionary con categoría y color
         """
@@ -1137,13 +1145,13 @@ flowchart TB
         TS["Serie Temporal"]
         GEO["Features Geoespaciales"]
     end
-    
+  
     subgraph Preprocess["🔄 PREPROCESAMIENTO"]
         NORM["Normalización"]
         SEQ["Secuenciación"]
         ENC["Encoding Temporal"]
     end
-    
+  
     subgraph Architecture["🏗️ ARQUITECTURA LSTM-CNN HÍBRIDA"]
         LSTM1["LSTM Layer 1<br/>(128 units)"]
         DROP1["Dropout 0.2"]
@@ -1152,13 +1160,13 @@ flowchart TB
         DROP2["Dropout 0.2"]
         DENSE1["Dense Layer 1<br/>(32 units)"]
     end
-    
+  
     subgraph Output["📤 CAPA DE SALIDA"]
         PRED["Predicción Caudal"]
         CONF["Intervalo Confianza"]
         ALERT["Clasificación Alerta"]
     end
-    
+  
     VAR --> NORM
     TS --> SEQ
     GEO --> ENC
@@ -1177,15 +1185,15 @@ flowchart TB
 
 ### Variables de Entrada
 
-| Variable | Unidad | Fuente | Frecuencia | Rango Típico |
-|----------|--------|--------|------------|--------------|
-| **Caudal** | m³/s | Sensores IoT | 5 min | 0.5 - 50 |
-| **Precipitación** | mm | Sensores/GEE | 1h | 0 - 100 |
-| **Temperatura** | °C | Sensores/GEE | 1h | 10 - 35 |
-| **Humedad Relativa** | % | Sensores/GEE | 1h | 30 - 100 |
-| **Cobertura Vegetal** | NDVI (0-1) | GEE/Sentinel | 16 días | 0.2 - 0.8 |
-| **Índice Hídrico** | NDWI (0-1) | GEE/Sentinel | 16 días | -0.5 - 0.5 |
-| **Evapotranspiración** | mm/día | GEE/MODIS | Diario | 1 - 8 |
+| Variable                      | Unidad     | Fuente       | Frecuencia | Rango Típico |
+| ----------------------------- | ---------- | ------------ | ---------- | ------------- |
+| **Caudal**              | m³/s      | Sensores IoT | 5 min      | 0.5 - 50      |
+| **Precipitación**      | mm         | Sensores/GEE | 1h         | 0 - 100       |
+| **Temperatura**         | °C        | Sensores/GEE | 1h         | 10 - 35       |
+| **Humedad Relativa**    | %          | Sensores/GEE | 1h         | 30 - 100      |
+| **Cobertura Vegetal**   | NDVI (0-1) | GEE/Sentinel | 16 días   | 0.2 - 0.8     |
+| **Índice Hídrico**    | NDWI (0-1) | GEE/Sentinel | 16 días   | -0.5 - 0.5    |
+| **Evapotranspiración** | mm/día    | GEE/MODIS    | Diario     | 1 - 8         |
 
 ### Implementación TensorFlow
 
@@ -1205,12 +1213,12 @@ class HybridLSTMCNNPredictor:
     Modelo LSTM-CNN híbrido para predicción de caudal.
     Combina capacidad de secuencias de LSTM con extracción de características de CNN.
     """
-    
+  
     def __init__(self, config: dict = None):
         self.config = config or self._default_config()
         self.model = None
         self.history = None
-    
+  
     def _default_config(self) -> dict:
         return {
             'input_steps': 72,      # 72 horas de datos históricos
@@ -1226,11 +1234,11 @@ class HybridLSTMCNNPredictor:
             'batch_size': 32,
             'epochs': 100
         }
-    
+  
     def build_model(self) -> tf.keras.Model:
         """
         Construye arquitectura LSTM-CNN híbrida.
-        
+      
         Returns:
             Model compilado de TensorFlow
         """
@@ -1238,7 +1246,7 @@ class HybridLSTMCNNPredictor:
             shape=(self.config['input_steps'], self.config['n_features']),
             name='input_layer'
         )
-        
+      
         # Bloque LSTM bidireccional
         x = Bidirectional(
             LSTM(self.config['lstm_units_1'], 
@@ -1246,20 +1254,20 @@ class HybridLSTMCNNPredictor:
                 dropout=self.config['dropout_rate']),
             name='bi_lstm_1'
         )(inputs)
-        
+      
         x = Bidirectional(
             LSTM(self.config['lstm_units_2'],
                 return_sequences=False,
                 dropout=self.config['dropout_rate']),
             name='bi_lstm_2'
         )(x)
-        
+      
         # Bloque CNN 1D
         x = tf.keras.layers.Reshape(
             (1, self.config['lstm_units_2'] * 2),
             name='reshape'
         )(x)
-        
+      
         x = Conv1D(
             filters=self.config['cnn_filters'],
             kernel_size=self.config['kernel_size'],
@@ -1267,13 +1275,13 @@ class HybridLSTMCNNPredictor:
             padding='same',
             name='conv1d'
         )(x)
-        
+      
         x = Dropout(self.config['dropout_rate'], name='dropout_cnn')(x)
-        
+      
         # Capas densas de predicción
         x = Dense(self.config['dense_units'], activation='relu', name='dense_1')(x)
         x = LayerNormalization(name='layer_norm')(x)
-        
+      
         # Salidas múltiples
         # 1. Predicción de caudal (regresión)
         flow_output = Dense(
@@ -1281,23 +1289,23 @@ class HybridLSTMCNNPredictor:
             activation='linear',
             name='flow_prediction'
         )(x)
-        
+      
         # 2. Intervalo de confianza (incertidumbre)
         uncertainty = Dense(
             self.config['output_steps'],
             activation='softplus',  # Siempre positivo
             name='uncertainty'
         )(x)
-        
+      
         # 3. Clasificación de alerta (4 niveles)
         alert_output = Dense(
             4,  # green, yellow, orange, red
             activation='softmax',
             name='alert_classification'
         )(x)
-        
+      
         model = Model(inputs=inputs, outputs=[flow_output, uncertainty, alert_output])
-        
+      
         # Compilar con múltiples pérdidas
         model.compile(
             optimizer=Adam(learning_rate=self.config['learning_rate']),
@@ -1316,31 +1324,31 @@ class HybridLSTMCNNPredictor:
                 'alert_classification': ['accuracy']
             }
         )
-        
+      
         self.model = model
         return model
-    
+  
     def prepare_sequences(self, X: np.ndarray, y: np.ndarray) -> tuple:
         """
         Prepara secuencias para entrenamiento.
-        
+      
         Args:
             X: Features de entrada (n_samples, n_features)
             y: Targets (n_samples,)
-        
+      
         Returns:
             X_seq, y_seq listos para entrenamiento
         """
         sequences_x = []
         sequences_y = []
-        
+      
         for i in range(len(X) - self.config['input_steps'] - self.config['output_steps'] + 1):
             sequences_x.append(X[i:i + self.config['input_steps']])
             sequences_y.append(y[i + self.config['input_steps']:
                                   i + self.config['input_steps'] + self.config['output_steps']])
-        
+      
         return np.array(sequences_x), np.array(sequences_y)
-    
+  
     def train(
         self,
         X_train: np.ndarray,
@@ -1353,7 +1361,7 @@ class HybridLSTMCNNPredictor:
         Entrena el modelo con early stopping.
         """
         X_seq, y_seq = self.prepare_sequences(X_train, y_train)
-        
+      
         if X_val is not None:
             X_val_seq, y_val_seq = self.prepare_sequences(X_val, y_val)
             validation_data = (X_val_seq, {
@@ -1363,7 +1371,7 @@ class HybridLSTMCNNPredictor:
             })
         else:
             validation_data = None
-        
+      
         default_callbacks = [
             EarlyStopping(
                 monitor='val_loss',
@@ -1376,7 +1384,7 @@ class HybridLSTMCNNPredictor:
                 save_best_only=True
             )
         ]
-        
+      
         self.history = self.model.fit(
             X_seq,
             {
@@ -1389,26 +1397,26 @@ class HybridLSTMCNNPredictor:
             batch_size=self.config['batch_size'],
             callbacks=callbacks or default_callbacks
         )
-        
+      
         return self.history
-    
+  
     def predict(self, X_input: np.ndarray) -> dict:
         """
         Realiza predicción con el modelo entrenado.
-        
+      
         Returns:
             Dictionary con predicción, incertidumbre y alerta
         """
         if self.model is None:
             raise ValueError("Modelo no ha sido entrenado")
-        
+      
         X_seq = X_input.reshape(1, self.config['input_steps'], self.config['n_features'])
         flow, uncertainty, alert = self.model.predict(X_seq)
-        
+      
         # Convertir probabilidades de alerta a clase
         alert_classes = ['green', 'yellow', 'orange', 'red']
         predicted_alert = alert_classes[np.argmax(alert[0][0])]
-        
+      
         return {
             'flow_prediction': flow[0],
             'uncertainty': uncertainty[0],
@@ -1430,7 +1438,7 @@ class AlertSystem:
     Sistema de clasificación y generación de alertas.
     Implementa lógica de decisión multicriterio.
     """
-    
+  
     ALERT_THRESHOLDS = {
         'ndvi': {
             'green': 0.6,      # Vegetación saludable
@@ -1451,7 +1459,7 @@ class AlertSystem:
             'red': (0, 0.5)       # Casi nulo
         }
     }
-    
+  
     def classify_alert(
         self,
         ndvi: float,
@@ -1461,7 +1469,7 @@ class AlertSystem:
     ) -> dict:
         """
         Clasifica nivel de alerta basado en múltiples variables.
-        
+      
         Returns:
             Dictionary con nivel, score y mensaje
         """
@@ -1470,11 +1478,11 @@ class AlertSystem:
             'flow_score': self._score_flow_change(current_flow, historical_flow_mean),
             'precipitation_score': self._score_precipitation(precipitation_24h)
         }
-        
+      
         # Promedio ponderado
         weights = {'ndvi_score': 0.4, 'flow_score': 0.35, 'precipitation_score': 0.25}
         total_score = sum(scores[k] * weights[k] for k in scores)
-        
+      
         # Clasificación final
         if total_score >= 0.75:
             level = 'green'
@@ -1484,7 +1492,7 @@ class AlertSystem:
             level = 'orange'
         else:
             level = 'red'
-        
+      
         return {
             'level': level,
             'score': round(total_score, 3),
@@ -1492,7 +1500,7 @@ class AlertSystem:
             'message': self._generate_message(level, scores),
             'recommended_actions': self._get_recommended_actions(level)
         }
-    
+  
     def _score_ndvi(self, ndvi: float) -> float:
         """Score 0-1 para NDVI (1 = mejor condición)."""
         thresholds = self.ALERT_THRESHOLDS['ndvi']
@@ -1506,7 +1514,7 @@ class AlertSystem:
             return 0.25
         else:
             return 0.0
-    
+  
     def _score_flow_change(
         self,
         current: float,
@@ -1515,10 +1523,10 @@ class AlertSystem:
         """Score basado en cambio de caudal respecto a histórico."""
         if historical_mean == 0:
             return 0.5
-        
+      
         change_ratio = (current - historical_mean) / historical_mean
         thresholds = self.ALERT_THRESHOLDS['flow_change']
-        
+      
         if change_ratio > thresholds['green']:
             return 1.0
         elif change_ratio > -thresholds['yellow']:
@@ -1529,11 +1537,11 @@ class AlertSystem:
             return 0.25
         else:
             return 0.0
-    
+  
     def _score_precipitation(self, precip_24h: float) -> float:
         """Score basado en precipitación últimas 24h."""
         thresholds = self.ALERT_THRESHOLDS['precipitation']
-        
+      
         if thresholds['green'][0] <= precip_24h <= thresholds['green'][1]:
             return 1.0
         elif thresholds['yellow'][0] <= precip_24h < thresholds['yellow'][1]:
@@ -1542,7 +1550,7 @@ class AlertSystem:
             return 0.3
         else:
             return 0.0
-    
+  
     def _generate_message(self, level: str, scores: dict) -> str:
         """Genera mensaje descriptivo para la alerta."""
         messages = {
@@ -1552,7 +1560,7 @@ class AlertSystem:
             'red': "EMERGENCIA hídrica. Intervención inmediata recomendada."
         }
         return messages[level]
-    
+  
     def _get_recommended_actions(self, level: str) -> list:
         """Acciones recomendadas según nivel de alerta."""
         actions = {
@@ -1595,30 +1603,30 @@ flowchart TD
         PRE["Predicciones"]
         ALERT["Alertas"]
     end
-    
+  
     subgraph Transform["🔄 TRANSFORMACIÓN"]
         AGG["Agregación"]
         CONTEXT["Contexto Histórico"]
         COMPARISON["Comparativas"]
     end
-    
+  
     subgraph Prompt["📝 PROMPT ENGINEERING"]
         TEMPLATE["Templates"]
         FEWSHOT["Few-shot Examples"]
         CONSTRAINTS["Constraints"]
     end
-    
+  
     subgraph LLM["🤖 LLM"]
         GPT["GPT-4 API"]
         SAFETY["Safety Filter"]
     end
-    
+  
     subgraph Output["📤 OUTPUT"]
         REPORT["Reportes"]
         ALERT_NL["Alertas NL"]
         SUMMARY["Resúmenes"]
     end
-    
+  
     MET --> AGG
     PRE --> AGG
     ALERT --> CONTEXT
@@ -1661,11 +1669,11 @@ class ReportGenerator:
     Generador de reportes en lenguaje natural usando IA generativa.
     Transforma datos complejos en narrativas comprensibles.
     """
-    
+  
     SYSTEM_PROMPT = """Eres un analista ambiental experto en gestión hídrica 
     colombiana con 15 años de experiencia. Tu función es generar reportes 
     técnicos claros y actionable para alcaldías y entes ambientales.
-    
+  
     DIRECTRICES:
     - Usa lenguaje técnico pero accesible
     - Include cifras específicas de los datos proporcionados
@@ -1673,68 +1681,68 @@ class ReportGenerator:
     - Sugiere acciones concretas basadas en la evidencia
     - NO inventes datos - solo usa los proporcionados
     - Sé conciso pero completo"""
-    
+  
     REPORT_TEMPLATES = {
         'daily': """
         ## Resumen Diario - {zone_name}
         **{date}**
-        
+      
         ### Condiciones Actuales
         {current_conditions}
-        
+      
         ### Tendencias
         {trends}
-        
+      
         ### Predicciones
         {predictions}
-        
+      
         ### Recomendaciones
         {recommendations}
         """,
-        
+      
         'weekly': """
         ## Informe Semanal - {zone_name}
         **{week_start} al {week_end}**
-        
+      
         ### Resumen Ejecutivo
         {executive_summary}
-        
+      
         ### Análisis de Variables
         {variable_analysis}
-        
+      
         ### Comparativa Histórica
         {historical_comparison}
-        
+      
         ### Alertas Activas
         {active_alerts}
-        
+      
         ### Acciones Recomendadas
         {recommended_actions}
         """,
-        
+      
         'alert': """
         ## 🚨 ALERTA {level}: {alert_type}
         **{timestamp}** - {zone_name}
-        
+      
         ### Descripción
         {description}
-        
+      
         ### Datos de Soporte
         {supporting_data}
-        
+      
         ### Impacto Potencial
         {potential_impact}
-        
+      
         ### Acciones Inmediatas Requeridas
         {immediate_actions}
         """
     }
-    
+  
     def __init__(self, api_key: str, model: str = "gpt-4-turbo"):
         self.api_key = api_key
         self.model = model
         self.client = OpenAI(api_key=api_key)
-    
+  
     def generate_daily_report(self, context: ReportContext) -> str:
         """
         Genera reporte diario en lenguaje natural.
@@ -1752,12 +1760,12 @@ class ReportGenerator:
             'alerts': context.active_alerts,
             'risk': context.risk_level.upper()
         }
-        
+      
         # Construir prompt detallado
         user_prompt = f"""
         Genera un reporte diario para la zona {prompt_context['zone']} 
         con fecha {prompt_context['date']}.
-        
+      
         DATOS DEL DÍA:
         - NDVI promedio: {prompt_context['ndvi']} (tendencia: {prompt_context['ndvi_trend']})
         - Caudal promedio: {prompt_context['flow']} m³/s ({prompt_context['flow_change']} vs histórico)
@@ -1765,17 +1773,17 @@ class ReportGenerator:
         - Temperatura promedio: {prompt_context['temp']} °C
         - Alertas activas: {prompt_context['alerts']}
         - Nivel de riesgo: {prompt_context['risk']}
-        
+      
         Incluye:
         1. Descripción de condiciones actuales de la cuenca
         2. Análisis de tendencias (¿mejora o empeora?)
         3. Predicción para las próximas 24-48 horas
         4. Recomendaciones específicas para hoy
         """
-        
+      
         response = self._call_llm(user_prompt)
         return response
-    
+  
     def generate_alert_narrative(
         self,
         alert_level: str,
@@ -1791,28 +1799,28 @@ class ReportGenerator:
             'orange': "Alerta",
             'red': "EMERGENCIA"
         }
-        
+      
         user_prompt = f"""
         Genera una notificación de alerta para {zone_name}.
-        
+      
         NIVEL: {level_messages.get(alert_level, alert_level)}
-        
+      
         DATOS TÉCNICOS:
         {json.dumps(alert_data, indent=2)}
-        
+      
         REQUISITOS:
         1. Título claro con nivel de alerta
         2. Descripción del problema en lenguaje no técnico
         3. Qué significa esto para los ciudadanos
         4. Qué acciones deben tomar
         5. Qué están haciendo las autoridades
-        
+      
         El tono debe ser informativo pero urgente (especialmente para naranja/rojo).
         """
-        
+      
         response = self._call_llm(user_prompt)
         return response
-    
+  
     def _call_llm(self, user_prompt: str, temperature: float = 0.3) -> str:
         """
         Llama a la API de OpenAI con el prompt construido.
@@ -1827,9 +1835,9 @@ class ReportGenerator:
             max_tokens=2000,
             top_p=0.95
         )
-        
+      
         return response.choices[0].message.content
-    
+  
     def generate_executive_summary(
         self,
         reports: list,
@@ -1842,38 +1850,38 @@ class ReportGenerator:
         avg_ndvi = sum(r.ndvi_mean for r in reports) / len(reports)
         avg_flow = sum(r.flow_mean for r in reports) / len(reports)
         total_alerts = sum(r.active_alerts for r in reports)
-        
+      
         user_prompt = f"""
         Genera un resumen ejecutivo para alcaldías y decisores.
-        
+      
         PERÍODO: Últimos {period_days} días
         ZONA: {reports[0].zone_name}
-        
+      
         MÉTRICAS CLAVE:
         - NDVI promedio: {avg_ndvi:.2f}
         - Caudal promedio: {avg_flow:.2f} m³/s
         - Total alertas: {total_alerts}
         - Tendencia general: {'MEJORA' if reports[-1].ndvi_mean > reports[0].ndvi_mean else 'DETERIORO'}
-        
+      
         REQUISITOS:
         1. Máximo 3 párrafos
         2. Usar formato bullets para datos clave
         3. Incluir prognosis a 30 días
         4. Sugerir 2-3 acciones prioritarias
         """
-        
+      
         return self._call_llm(user_prompt, temperature=0.2)
 ```
 
 ### Tipos de Reportes Automatizados
 
-| Tipo | Frecuencia | Destinatario | Contenido | Extensión |
-|------|------------|--------------|-----------|-----------|
-| **Diario Operativo** | 24h | Operadores de monitoreo | Métricas básicas, alertas activas | 1 página |
-| **Semanal Técnico** | 7 días | Equipo técnico | Análisis tendencias, predicciones | 3-5 páginas |
-| **Mensual Ejecutivo** | 30 días | Directivos, Alcaldía | Resumen KPIs, comparativas, prognosis | 8-10 páginas |
-| **Alerta Crítica** | Evento | Todos los stakeholders | Notificación inmediata con acciones | < 1 página |
-| **Informe Especial** | Bajo demanda | Entidades reguladoras | Análisis detallado de incidentes | Variable |
+| Tipo                        | Frecuencia   | Destinatario            | Contenido                             | Extensión    |
+| --------------------------- | ------------ | ----------------------- | ------------------------------------- | ------------- |
+| **Diario Operativo**  | 24h          | Operadores de monitoreo | Métricas básicas, alertas activas   | 1 página     |
+| **Semanal Técnico**  | 7 días      | Equipo técnico         | Análisis tendencias, predicciones    | 3-5 páginas  |
+| **Mensual Ejecutivo** | 30 días     | Directivos, Alcaldía   | Resumen KPIs, comparativas, prognosis | 8-10 páginas |
+| **Alerta Crítica**   | Evento       | Todos los stakeholders  | Notificación inmediata con acciones  | < 1 página   |
+| **Informe Especial**  | Bajo demanda | Entidades reguladoras   | Análisis detallado de incidentes     | Variable      |
 
 ---
 
@@ -1887,25 +1895,25 @@ flowchart TB
         WEB["Dashboard Web"]
         MOB["App Móvil"]
     end
-    
+  
     subgraph State["🔄 ESTADO"]
         STORE["Pinia Store"]
         CACHE["Cache Local"]
     end
-    
+  
     subgraph UI["🎨 CAPA UI"]
         MAPS["Mapas Interactivos"]
         CHARTS["Gráficos"]
         TABLES["Tablas Datos"]
         ALERTS["Sistema Alertas"]
     end
-    
+  
     subgraph Data["📡 DATOS"]
         REST["REST API"]
         WS["WebSocket"]
         MQTT["MQTT Client"]
     end
-    
+  
     WEB --> STORE
     MOB --> STORE
     STORE --> MAPS
@@ -1920,14 +1928,14 @@ flowchart TB
 
 ### Componentes Principales
 
-| Componente | Tecnología | Función | Estado |
-|-------------|------------|---------|--------|
-| **Map Viewer** | Leaflet 1.9 + Mapbox GL | Visualización geoespacial | ✅ Implementado |
-| **Chart Dashboard** | Chart.js 4 | Series temporales | ✅ Implementado |
-| **Alert Panel** | Vue.js 3 | Sistema de notificaciones | ✅ Implementado |
-| **Data Tables** | AG Grid | Tablas de datos complejos | ✅ Implementado |
-| **Report Viewer** | PDF.js | Visualización reportes | 🔄 En desarrollo |
-| **Real-time KPIs** | Socket.io | Actualización en vivo | 🔄 En desarrollo |
+| Componente                | Tecnología             | Función                   | Estado           |
+| ------------------------- | ----------------------- | -------------------------- | ---------------- |
+| **Map Viewer**      | Leaflet 1.9 + Mapbox GL | Visualización geoespacial | ✅ Implementado  |
+| **Chart Dashboard** | Chart.js 4              | Series temporales          | ✅ Implementado  |
+| **Alert Panel**     | Vue.js 3                | Sistema de notificaciones  | ✅ Implementado  |
+| **Data Tables**     | AG Grid                 | Tablas de datos complejos  | ✅ Implementado  |
+| **Report Viewer**   | PDF.js                  | Visualización reportes    | 🔄 En desarrollo |
+| **Real-time KPIs**  | Socket.io               | Actualización en vivo     | 🔄 En desarrollo |
 
 ### Características del Dashboard
 
@@ -1969,21 +1977,21 @@ flowchart LR
         BASE["Base Hídrica"]
         ARCH["Arquitectura Modular"]
     end
-    
+  
     BASE --> AGRI["🌾 Agricultura"]
     BASE --> URBAN["🏙️ Urbano"]
     BASE --> MINING["⛏️ Minería"]
     BASE --> CONSER["🌳 Conservación"]
-    
+  
     ARCH --> AGRI
     ARCH --> URBAN
     ARCH --> MINERIA
     ARCH --> CONSER
-    
+  
     URBAN -.-> "Infraestructura"
     URBAN -.-> "Movilidad"
     URBAN -.-> "Energía"
-    
+  
     AGRI -.-> "Cultivos"
     AGRI -.-> "Riego"
     AGRI -.-> "Plagas"
@@ -1991,27 +1999,30 @@ flowchart LR
 
 ### Sectores de Aplicación
 
-| Sector | Variables Adicionales | Casos de Uso | Entidades Objetivo |
-|--------|----------------------|--------------|-------------------|
+| Sector                              | Variables Adicionales                    | Casos de Uso                                            | Entidades Objetivo          |
+| ----------------------------------- | ---------------------------------------- | ------------------------------------------------------- | --------------------------- |
 | **Agricultura de Precisión** | Humedad suelo, estrés hídrico, biomasa | Riego optimizado, predicción rindes, detección plagas | Cooperativas, agroindustria |
-| **Gestión Urbana** | Calidad aire, islas de calor, ruido | Planificación urbana, movilidad | Alcaldías, planeación |
-| **Minería Responsable** | Sedimentación, lixiviados, subsidencia | Monitoreo ambiental, compliance | Mineras, autoridades |
-| **Conservación** | Biodiversidad, corredores, fuegos | Áreas protegidas, fauna | Parques, ONGs |
-| **Infraestructura** | Estabilidad slopes, vibraciones | Riesgo construcciones, puentes | Ingenieros, aseguradoras |
+| **Gestión Urbana**           | Calidad aire, islas de calor, ruido      | Planificación urbana, movilidad                        | Alcaldías, planeación     |
+| **Minería Responsable**      | Sedimentación, lixiviados, subsidencia  | Monitoreo ambiental, compliance                         | Mineras, autoridades        |
+| **Conservación**             | Biodiversidad, corredores, fuegos        | Áreas protegidas, fauna                                | Parques, ONGs               |
+| **Infraestructura**           | Estabilidad slopes, vibraciones          | Riesgo construcciones, puentes                          | Ingenieros, aseguradoras    |
 
 ### Fases de Expansión
 
 #### Fase 1: Consolidación (Año 1)
+
 - ✅ Estabilización módulo hídrico Combeima
 - ✅ Integración sensores IoT en producción
 - 🔄 Validación modelos predictivos
 
 #### Fase 2: Expansión Geográfica (Año 2)
+
 - 📋 Cuenca del río Magdalena
 - 📋 Costa Caribe colombiana
 - 📋 Adaptation a ecosistemas andinos
 
 #### Fase 3: Diversificación Sectorial (Año 3)
+
 - 📋 Módulo agrícola (pilot con Fedegan)
 - 📋 Módulo urbano (pilot con Ibagué)
 - 📋 API pública para desarrolladores
@@ -2222,13 +2233,13 @@ SENTRY_DSN=https://xxxxx@sentry.io/xxxxx
 
 #### Clean Code Principles
 
-| Principio | Aplicación en Skyfusion |
-|-----------|-------------------------|
+| Principio                             | Aplicación en Skyfusion                 |
+| ------------------------------------- | ---------------------------------------- |
 | **SRP** (Single Responsibility) | Cada servicio una responsabilidad única |
-| **OCP** (Open/Closed) | Extensión via plugins, no modificación |
-| **LSP** (Liskov Substitution) | Interfaces genéricas para替换 |
-| **ISP** (Interface Segregation) | APIs pequeñas y específicas |
-| **DIP** (Dependency Inversion) | Inyección de dependencias |
+| **OCP** (Open/Closed)           | Extensión via plugins, no modificación |
+| **LSP** (Liskov Substitution)   | Interfaces genéricas para替换           |
+| **ISP** (Interface Segregation) | APIs pequeñas y específicas            |
+| **DIP** (Dependency Inversion)  | Inyección de dependencias               |
 
 #### Convenciones de Nomenclatura
 
@@ -2290,9 +2301,11 @@ Lista todas las zonas de estudio.
 ```
 
 #### POST /api/v1/zones
+
 Crea una nueva zona de estudio.
 
 **Request Body:**
+
 ```json
 {
   "name": "Nueva Zona",
@@ -2305,6 +2318,7 @@ Crea una nueva zona de estudio.
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": "zone_006",
@@ -2316,9 +2330,11 @@ Crea una nueva zona de estudio.
 ### Analysis
 
 #### POST /api/v1/analysis/ndvi
+
 Calcula NDVI para una zona.
 
 **Request Body:**
+
 ```json
 {
   "zone_id": "zone_001",
@@ -2329,6 +2345,7 @@ Calcula NDVI para una zona.
 ```
 
 **Response (200):**
+
 ```json
 {
   "zone_id": "zone_001",
@@ -2349,9 +2366,11 @@ Calcula NDVI para una zona.
 ### Predictions
 
 #### POST /api/v1/predictions/flow
+
 Genera predicción de caudal.
 
 **Request Body:**
+
 ```json
 {
   "zone_id": "zone_001",
@@ -2361,6 +2380,7 @@ Genera predicción de caudal.
 ```
 
 **Response (200):**
+
 ```json
 {
   "zone_id": "zone_001",
@@ -2382,6 +2402,7 @@ Genera predicción de caudal.
   }
 }
 ```
+
 ```
 
 ---
@@ -2395,51 +2416,51 @@ graph TB
         MOB["📱 App Móvil<br/>(PWA)"]
         API["🔌 API Clients<br/>(Terceros)"]
     end
-    
+  
     subgraph Gateway["⚡ API GATEWAY"]
         NGINX["NGINX<br/>(Load Balancer)"]
         AUTH["Auth Service<br/>(JWT)"]
         RATE["Rate Limiter"]
     end
-    
+  
     subgraph Backend["🖥️ BACKEND NODE.JS"]
         EXP["Express.js API"]
         NEO4J["📊 Neo4j 5.18<br/(Grafo)"]
         REDIS["⚡ Redis<br/(Cache)"]
         MQ["📬 Message Queue<br/(Bull)"]
     end
-    
+  
     subgraph Processing["🐍 PYTHON PROCESSING"]
         GEE["Google Earth Engine"]
         CV["OpenCV Engine"]
         PD["Pandas/NumPy"]
         GEO["GeoPandas"]
     end
-    
+  
     subgraph AI["🤖 AI LAYER"]
         TF["🧠 TensorFlow Serving"]
         LLM["✨ LLM Service<br/(GPT-4)"]
         ANOMALY["🔍 Anomaly Detector"]
     end
-    
+  
     subgraph Storage["💾 DATA LAYER"]
         PG["PostgreSQL<br/(Relacional)"]
         MINIO["🪣 MinIO S3<br/(Files)"]
         TS["⏱️ TimescaleDB<br/(Time-series)"]
     end
-    
+  
     subgraph IoT["📡 IoT LAYER"]
         MQTT["MQTT Broker"]
         SENSORS["Sensores ESP32"]
         DRONES["Drones DJI"]
     end
-    
+  
     subgraph Monitoring["📈 MONITORING"]
         PROM["Prometheus"]
         GRAF["Grafana"]
         LOKI["Loki Logs"]
     end
-    
+  
     WEB --> NGINX
     MOB --> NGINX
     API --> NGINX
@@ -2460,11 +2481,11 @@ graph TB
     LLM --> EXP
     EXP --> WEB
     EXP --> MOB
-    
+  
     MQTT --> SENSORS
     MQTT --> EXP
     DRONES --> EXP
-    
+  
     EXP --> TS
     EXP --> MINIO
     TS --> PROM
@@ -2476,21 +2497,21 @@ graph TB
 
 ## 📊 Resumen de Capacidades
 
-| Categoría | Capability | Status |
-|-----------|-----------|--------|
-| **Ingesta** | Google Earth Engine (Landsat/Sentinel) | ✅ |
-| **Ingesta** | Drones UAV (DJI M300) | ✅ |
-| **Ingesta** | Sensores IoT (MQTT) | ✅ |
-| **Procesamiento** | OpenCV (segmentación) | ✅ |
-| **Procesamiento** | Pandas (series temporales) | ✅ |
-| **Procesamiento** | Cálculo NDVI/NDWI | ✅ |
-| **IA Predictiva** | LSTM-CNN híbrido | ✅ |
-| **IA Predictiva** | Sistema de alertas | ✅ |
-| **IA Generativa** | Reportes en NL | ✅ |
-| **Presentación** | Dashboard interactivo | ✅ |
-| **Presentación** | Mapas georreferenciados | ✅ |
-| **Infraestructura** | Docker containers | ✅ |
-| **Infraestructura** | Neo4j graph DB | ✅ |
+| Categoría                | Capability                             | Status |
+| ------------------------- | -------------------------------------- | ------ |
+| **Ingesta**         | Google Earth Engine (Landsat/Sentinel) | ✅     |
+| **Ingesta**         | Drones UAV (DJI M300)                  | ✅     |
+| **Ingesta**         | Sensores IoT (MQTT)                    | ✅     |
+| **Procesamiento**   | OpenCV (segmentación)                 | ✅     |
+| **Procesamiento**   | Pandas (series temporales)             | ✅     |
+| **Procesamiento**   | Cálculo NDVI/NDWI                     | ✅     |
+| **IA Predictiva**   | LSTM-CNN híbrido                      | ✅     |
+| **IA Predictiva**   | Sistema de alertas                     | ✅     |
+| **IA Generativa**   | Reportes en NL                         | ✅     |
+| **Presentación**   | Dashboard interactivo                  | ✅     |
+| **Presentación**   | Mapas georreferenciados                | ✅     |
+| **Infraestructura** | Docker containers                      | ✅     |
+| **Infraestructura** | Neo4j graph DB                         | ✅     |
 
 ---
 
