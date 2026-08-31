@@ -64,6 +64,21 @@ async function createConstraints() {
       FOR (s:Station) REQUIRE s.id IS UNIQUE
     `);
     
+    await session.run(`
+      CREATE CONSTRAINT scene_id_unique IF NOT EXISTS
+      FOR (s:Scene) REQUIRE s.id IS UNIQUE
+    `);
+    
+    await session.run(`
+      CREATE CONSTRAINT prediction_id_unique IF NOT EXISTS
+      FOR (p:Prediction) REQUIRE p.id IS UNIQUE
+    `);
+    
+    await session.run(`
+      CREATE CONSTRAINT report_id_unique IF NOT EXISTS
+      FOR (r:Report) REQUIRE r.id IS UNIQUE
+    `);
+    
     logger.info('Database constraints created successfully');
   } finally {
     await session.close();

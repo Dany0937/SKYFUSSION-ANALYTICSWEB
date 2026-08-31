@@ -3,6 +3,7 @@ import zonesRouter from './v1/zones.js';
 import measurementsRouter from './v1/measurements.js';
 import stationsRouter from './v1/stations.js';
 import alertsRouter from './v1/alerts.js';
+import pipelineRouter from './v1/pipeline.js';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/zones', zonesRouter);
 router.use('/measurements', measurementsRouter);
 router.use('/stations', stationsRouter);
 router.use('/alerts', alertsRouter);
+router.use('/pipeline', pipelineRouter);
 
 export default router;
