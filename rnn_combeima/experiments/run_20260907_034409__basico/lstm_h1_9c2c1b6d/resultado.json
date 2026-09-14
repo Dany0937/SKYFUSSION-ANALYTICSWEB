@@ -1,0 +1,16 @@
+{
+  "id": "lstm_h1_9c2c1b6d",
+  "arquitectura": "lstm",
+  "horizonte": 1,
+  "zona": "combeima",
+  "epochs": 3,
+  "params": 31825,
+  "config_json": "{\"unidades\": [64, 32], \"dropout\": 0.3, \"lr\": 0.001, \"batch_size\": 32}",
+  "mae": 0.28778701673102813,
+  "rmse": 0.3518342832887264,
+  "r2": -1.247424879197808,
+  "smape": 80.60641461863604,
+  "mejor_val_loss": NaN,
+  "tiempo_seg": 7.8,
+  "dir": "C:\\Users\\DANY-\\OneDrive - uniminuto.edu\\Skyfusion-Analytics\\rnn_combeima\\experiments\\run_20260907_034409__basico\\lstm_h1_9c2c1b6d"
+}

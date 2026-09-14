@@ -1,0 +1,16 @@
+{
+  "id": "tcn_h1_0dd7f44a",
+  "arquitectura": "tcn",
+  "horizonte": 1,
+  "zona": "combeima",
+  "epochs": 3,
+  "params": 87473,
+  "config_json": "{\"filters\": 96, \"kernel_size\": 3, \"dilations\": [1, 2, 4, 8], \"dropout\": 0.3, \"lr\": 0.001, \"batch_size\": 32}",
+  "mae": 0.29181401872689405,
+  "rmse": 0.3562095989839347,
+  "r2": -1.3036691696498113,
+  "smape": 82.29847083812965,
+  "mejor_val_loss": NaN,
+  "tiempo_seg": 7.5,
+  "dir": "C:\\Users\\DANY-\\OneDrive - uniminuto.edu\\Skyfusion-Analytics\\rnn_combeima\\experiments\\run_20260907_034409__basico\\tcn_h1_0dd7f44a"
+}

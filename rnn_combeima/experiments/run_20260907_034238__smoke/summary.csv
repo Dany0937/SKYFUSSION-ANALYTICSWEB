@@ -1,0 +1,3 @@
+id,arquitectura,horizonte,zona,epochs,params,config_json,mae,rmse,r2,smape,mejor_val_loss,tiempo_seg,dir
+gru_h1_10c1eb14,gru,1,combeima,4,23665,"{""unidades"": [32, 64], ""dropout"": 0.3, ""lr"": 0.001, ""batch_size"": 32}",0.28726089650810493,0.35126087390645805,-1.2401052720177543,80.38760393712812,,10.8,C:\Users\DANY-\OneDrive - uniminuto.edu\Skyfusion-Analytics\rnn_combeima\experiments\run_20260907_034238__smoke\gru_h1_10c1eb14
+gru_h1_ff72bfeb,gru,1,combeima,4,24273,"{""unidades"": [64, 32], ""dropout"": 0.3, ""lr"": 0.001, ""batch_size"": 32}",0.2876874506064668,0.3517258453751417,-1.246039746932924,80.56496106920133,,10.6,C:\Users\DANY-\OneDrive - uniminuto.edu\Skyfusion-Analytics\rnn_combeima\experiments\run_20260907_034238__smoke\gru_h1_ff72bfeb

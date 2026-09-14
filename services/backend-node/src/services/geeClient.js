@@ -15,9 +15,10 @@ export class GEEClient {
     if (this.initialized) return true;
 
     try {
-      const ee = await import('@google/earthengine');
+      const earthEngineModule = await import('@google/earthengine');
+      const ee = earthEngineModule.default ?? earthEngineModule;
 
-      const privateKey = this.loadPrivateKey();
+      const privateKey = await this.loadPrivateKey();
 
       await new Promise((resolve, reject) => {
         ee.data.authenticateViaPrivateKey(
@@ -27,7 +28,7 @@ export class GEEClient {
               this.ee = ee;
               this.initialized = true;
               resolve();
-            }, reject);
+            }, reject, config.gee.project);
           },
           reject
         );
@@ -42,17 +43,19 @@ export class GEEClient {
   }
 
   async loadPrivateKey() {
-    try {
-      const fs = await import('fs');
-      const keyPath = config.gee.privateKeyPath;
-      const keyContent = await fs.promises.readFile(keyPath, 'utf8');
-      return JSON.parse(keyContent);
-    } catch (error) {
-      logger.warn('Could not load GEE private key file, using service account email', {
-        error: error.message
-      });
-      return { client_email: config.gee.serviceAccountEmail };
+    const fs = await import('node:fs/promises');
+    const keyPath = config.gee.privateKeyPath;
+    const keyContent = await fs.readFile(keyPath, 'utf8');
+    const privateKey = JSON.parse(keyContent);
+
+    if (!privateKey.client_email || !privateKey.private_key) {
+      throw new Error(
+        `GEE service account key is incomplete: ${keyPath}. ` +
+        'It must contain client_email and private_key.'
+      );
     }
+
+    return privateKey;
   }
 
   async getSentinelComposite(geometry, startDate, endDate, cloudCoverMax) {

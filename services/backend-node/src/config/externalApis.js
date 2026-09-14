@@ -1,12 +1,19 @@
+import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createLogger } from '../utils/logger.js';
 
 const logger = createLogger('config:externalApis');
+const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 function loadConfig() {
   return {
     gee: {
       serviceAccountEmail: process.env.GEE_SERVICE_ACCOUNT_EMAIL,
-      privateKeyPath: process.env.GEE_PRIVATE_KEY_PATH || './config/gee-private-key.json',
+      privateKeyPath: path.resolve(
+        backendRoot,
+        process.env.GEE_PRIVATE_KEY_PATH || 'config/gee-private-key.json'
+      ),
       project: process.env.GEE_PROJECT || 'skyfusion-analytics',
       collections: {
         sentinel2: 'COPERNICUS/S2_SR_HARMONIZED',
