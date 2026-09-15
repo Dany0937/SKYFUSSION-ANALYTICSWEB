@@ -55,10 +55,14 @@ def verificar_sdk() -> bool:
 def verificar_credenciales() -> Optional[str]:
     """2. ¿Existen credenciales guardadas en el perfil del usuario?"""
     print("\n2) Credenciales guardadas")
+    home = os.path.expanduser("~")
     candidatos = [
-        os.path.expanduser("~/.config/earthengine/credentials"),
-        os.path.expanduser("~/.config/earthengine/"),
-        os.path.expanduser("~/.earthengine"),
+        os.path.join(home, ".config", "earthengine", "credentials"),
+        os.path.join(home, ".config", "earthengine"),
+        os.path.join(home, ".earthengine", "credentials"),
+        os.path.join(home, ".earthengine"),
+        os.path.join(os.environ.get("APPDATA", ""), "earthengine", "credentials"),
+        os.path.join(os.environ.get("APPDATA", ""), "earthengine"),
     ]
     ruta_creds = None
     for c in candidatos:
@@ -76,7 +80,7 @@ def verificar_credenciales() -> Optional[str]:
         print(_estado_ok(f"Credenciales encontradas: {ruta_creds}"))
         return ruta_creds
 
-    print(_estado_fail("Sin credenciales en ~/.config/earthengine/"))
+    print(_estado_fail("Sin credenciales en las rutas estándar de Earth Engine"))
     print("      Ejecuta:  earthengine authenticate")
     print("      o        python -c \"import ee; ee.Authenticate()\"")
     print("      Esto abre el navegador → autoriza con tu cuenta de Google")

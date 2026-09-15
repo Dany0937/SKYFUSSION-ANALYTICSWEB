@@ -1,0 +1,17 @@
+{
+  "id": "bigru_h1_26bfc988",
+  "arquitectura": "bigru",
+  "horizonte": 1,
+  "zona": "combeima",
+  "fuente": "REALES (GEE)",
+  "epochs": 8,
+  "params": 59601,
+  "config_json": "{\"unidades\": [32, 64], \"dropout\": 0.3, \"lr\": 0.001, \"batch_size\": 32}",
+  "mae": 0.09036220483692632,
+  "rmse": 0.10771138068174088,
+  "r2": -1.1136983501357247,
+  "smape": 12.333907972202908,
+  "mejor_val_loss": 0.0390578992664814,
+  "tiempo_seg": 17.9,
+  "dir": "C:\\Users\\DANY-\\OneDrive - uniminuto.edu\\Skyfusion-Analytics\\rnn_combeima\\experiments\\run_20260914_001155__basico\\bigru_h1_26bfc988"
+}

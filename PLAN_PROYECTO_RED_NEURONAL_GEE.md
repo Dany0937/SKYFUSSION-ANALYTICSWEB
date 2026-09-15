@@ -1,5 +1,20 @@
 # Plan del Proyecto: Red Neuronal con Datos de Google Earth Engine
 
+## Estado de implementación — 2026-09-13
+
+| Tarea | Estado | Evidencia / bloqueo |
+|-------|--------|---------------------|
+| Diagnóstico de GEE | Completada | OAuth local creado; proyecto `skyfussionanalytics`; MODIS, Sentinel-2 y Landsat accesibles. La ausencia de asset roots no bloquea colecciones públicas. |
+| Extracción real MODIS/Sentinel-2/Landsat | MODIS completada | `rnn_combeima/data/raw/series_multisensor_combeima.csv`: 4.016 observaciones, 40 píxeles y 226 fechas MODIS. Sentinel-2/Landsat quedan disponibles para la siguiente ampliación. |
+| Limpieza y features temporales | Implementada | `rnn_combeima/rnn/preprocess.py`. |
+| División espacial sin leakage | Implementada y validada | Los splits no comparten píxeles; prueba directa ejecutada con datos sintéticos. |
+| Escalamiento sin leakage | Implementada | Los scalers se ajustan únicamente con los píxeles de entrenamiento. |
+| Entrenamiento RNN | Completada para baseline MODIS | Lote smoke y lote básico ejecutados con TensorFlow 2.20 en Python 3.13 sobre datos GEE reales. Mejor baseline actual: `gru_attention`, RMSE 0.0712, R² 0.0775. |
+| Clasificación MLP supervisada | Pendiente | Falta dataset Sentinel-2 con etiquetas `clase` verificables. |
+| EDA, matrices de confusión y mapas | Pendiente | Dependen de datos etiquetados y/o extracción GEE real. |
+
+Las corridas sintéticas existentes se conservan como validación histórica del pipeline y no representan resultados obtenidos con datos reales de GEE. Los resultados reales se consolidan en `rnn_combeima/reports/resumen_final.csv`.
+
 > **Metodología:** CRISP-DM (Sesiones 1-3) aplicada al modelado de una red neuronal
 > **Fuente de datos principal:** Google Earth Engine (GEE)
 > **Enfoque:** Integración completa desde la obtención de datos satelitales hasta el despliegue del modelo

@@ -128,7 +128,7 @@ SENSORES = {
 # --------------------------------------------------------------------------- #
 
 GEE_CONFIG = {
-    "proyecto_id": "",          # ej: "slyfusion-analytics" o "ee-nombre-usuario"
+    "proyecto_id": "skyfussionanalytics",
     "rastrear_tareas": True,    # monitorear export tasks en segundo plano
 }
 

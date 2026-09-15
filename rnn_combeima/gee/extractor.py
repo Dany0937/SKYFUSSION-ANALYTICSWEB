@@ -162,7 +162,9 @@ def _crowder_indices_sensor(coleccion: ee.ImageCollection, sensor: str) -> ee.Im
         else:
             res = imagen
 
-        return res.select(res.bandNames().removeAll(["constant"]))
+        # Un valor sentinel evita que `toBands()` descarte un punto completo
+        # cuando una fecha individual queda enmascarada por QA.
+        return res.select(res.bandNames().removeAll(["constant"])).unmask(-9999)
 
     return coleccion.map(_una)
 
@@ -244,9 +246,13 @@ def construir_serie_sensor(
             if k >= n_fechas:
                 continue
             fecha = pd.to_datetime(fechas_ms[k], unit="ms")
-            banda = nombre.split("_", 1)[-1] if "_" in nombre else nombre
+            bandas_conocidas = ("NDVI", "EVI", "NDWI", "SummaryQA", "SCL")
+            banda = next(
+                (b for b in bandas_conocidas if nombre.endswith(f"_{b}")),
+                nombre.rsplit("_", 1)[-1],
+            )
             valor = props.get(nombre)
-            if valor is None:
+            if valor is None or float(valor) <= -9998:
                 continue
             registros.append({
                 "fecha": fecha,

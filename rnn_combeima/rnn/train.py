@@ -84,6 +84,7 @@ def ejecutar_un_experimento(
     exp: Experimento,
     datos: Dict[str, np.ndarray],
     dir_run: str,
+    fuente: str = "desconocida",
 ) -> Dict:
     """
     Entrena y evalúa un experimento individual. devuelve dict de resultados.
@@ -158,6 +159,7 @@ def ejecutar_un_experimento(
         "arquitectura": exp.arquitectura,
         "horizonte": exp.horizonte,
         "zona": exp.zona,
+        "fuente": fuente,
         "epochs": exp.epochs,
         "params": n_params,
         "config_json": json.dumps(exp.config),
@@ -235,7 +237,7 @@ def ejecutar_lote(
                 guardar_splits=False,
             )
         datos = datos_por_horizonte[exp.horizonte]
-        res = ejecutar_un_experimento(exp, datos, dir_run)
+        res = ejecutar_un_experimento(exp, datos, dir_run, fuente=uso)
         resultados.append(res)
 
     df_res = pd.DataFrame(resultados)
@@ -254,16 +256,26 @@ def _generar_datos_sinteticos() -> str:
     ruta = os.path.join(ROOT, "data", "raw", "series_sinteticas_combima.csv")
     os.makedirs(os.path.dirname(ruta), exist_ok=True)
 
+    from config.experiments import ZONAS
+
+    bbox = ZONAS["combeima"]["bbox"]
     if os.path.exists(ruta):
-        return ruta
+        existente = pd.read_csv(ruta, usecols=["longitude", "latitude"])
+        dentro_roi = (
+            existente["longitude"].between(bbox[0], bbox[2]).all()
+            and existente["latitude"].between(bbox[1], bbox[3]).all()
+        )
+        if dentro_roi:
+            return ruta
+        print("⚠ Dataset sintético fuera del ROI configurado; se regenerará.")
 
     rng = np.random.default_rng(42)
     # 40 píxeles, 10 años cada 16 días
     fechas = pd.date_range("2015-01-01", "2024-12-31", freq="16D")
     filas = []
     for p in range(40):
-        lat = 4.4 + rng.uniform(0.2)
-        lon = -75.4 + rng.uniform(0.3)
+        lon = rng.uniform(bbox[0], bbox[2])
+        lat = rng.uniform(bbox[1], bbox[3])
         fase = rng.uniform(0, 2 * np.pi)
         amp = rng.uniform(0.15, 0.45)
         base = rng.uniform(0.35, 0.7)

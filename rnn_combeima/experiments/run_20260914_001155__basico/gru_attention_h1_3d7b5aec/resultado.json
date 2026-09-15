@@ -1,0 +1,17 @@
+{
+  "id": "gru_attention_h1_3d7b5aec",
+  "arquitectura": "gru_attention",
+  "horizonte": 1,
+  "zona": "combeima",
+  "fuente": "REALES (GEE)",
+  "epochs": 8,
+  "params": 24329,
+  "config_json": "{\"unidades\": [64, 32], \"dropout\": 0.3, \"lr\": 0.001, \"batch_size\": 32}",
+  "mae": 0.04916664888577136,
+  "rmse": 0.07115625713568047,
+  "r2": 0.07754324732820095,
+  "smape": 6.611137805506183,
+  "mejor_val_loss": 0.016834130510687828,
+  "tiempo_seg": 14.9,
+  "dir": "C:\\Users\\DANY-\\OneDrive - uniminuto.edu\\Skyfusion-Analytics\\rnn_combeima\\experiments\\run_20260914_001155__basico\\gru_attention_h1_3d7b5aec"
+}

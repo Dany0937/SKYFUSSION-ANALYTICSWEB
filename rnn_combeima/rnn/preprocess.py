@@ -189,48 +189,79 @@ def preparar_datos(
     if not feature_cols:
         raise ValueError("No quedaron features válidas tras el preproceso.")
 
-    # Escalamiento MinMax por feature, separado para target
+    # Las primeras filas de cada píxel no tienen lags completos. Se eliminan
+    # antes de dividir y escalar para que ningún registro descartado influya.
+    df = df.dropna(subset=feature_cols + [target]).reset_index(drop=True)
+
+    # Crear grupos estables por píxel antes de construir ventanas.
+    df["_pixel_group"] = pd.factorize(pd.Series(
+        list(zip(df["longitude"], df["latitude"]))
+    ))[0]
+    grupos = df["_pixel_group"].unique()
+
+    from sklearn.model_selection import GroupShuffleSplit
+
+    gss = GroupShuffleSplit(n_splits=1, test_size=test_ratio, random_state=semilla)
+    grupos_train_val_idx, grupos_test_idx = next(
+        gss.split(grupos, groups=grupos)
+    )
+    grupos_train_val = grupos[grupos_train_val_idx]
+    grupos_test = set(grupos[grupos_test_idx])
+
+    val_size_rel = val_ratio / (1 - test_ratio)
+    gss2 = GroupShuffleSplit(n_splits=1, test_size=val_size_rel, random_state=semilla)
+    grupos_train_idx, grupos_val_idx = next(
+        gss2.split(grupos_train_val, groups=grupos_train_val)
+    )
+    grupos_train = set(grupos_train_val[grupos_train_idx])
+    grupos_val = set(grupos_train_val[grupos_val_idx])
+
+    # Escalamiento MinMax por feature, ajustado solo con píxeles de train.
     scaler_X = MinMaxScaler()
     scaler_y = MinMaxScaler()
-    X_all = scaler_X.fit_transform(df[feature_cols].values.astype(np.float32))
-    y_all = scaler_y.fit_transform(df[[target]].values.astype(np.float32))
+    mascara_train = df["_pixel_group"].isin(grupos_train)
+    scaler_X.fit(df.loc[mascara_train, feature_cols].values.astype(np.float32))
+    scaler_y.fit(df.loc[mascara_train, [target]].values.astype(np.float32))
+
+    X_all = scaler_X.transform(df[feature_cols].values.astype(np.float32))
+    y_all = scaler_y.transform(df[[target]].values.astype(np.float32))
 
     df_scaled = df.copy()
     df_scaled[feature_cols] = X_all
     df_scaled[target] = y_all.ravel()
-    # Eliminar filas con NaN (lags iniciales de cada píxel) antes de ventanear
-    n_antes = len(df_scaled)
-    df_scaled = df_scaled.dropna().reset_index(drop=True)
-    if len(df_scaled) != n_antes:
-        print(f"   - Eliminadas {n_antes - len(df_scaled)} filas con NaN de lags")
 
     # Ventaneo por píxel
-    X, y, coords, pixel_ids = construir_secuencias_por_pixel(
+    X, y, coords, pixel_ids_local = construir_secuencias_por_pixel(
         df_scaled, feature_cols, target, timesteps, horizonte
     )
 
-    # División espacio-temporal: grupos = píxeles
-    gss = GroupShuffleSplit(n_splits=1, test_size=test_ratio, random_state=semilla)
-    idx_train_all, idx_test = next(gss.split(X, y, groups=pixel_ids))
+    # `construir_secuencias_por_pixel` enumera grupos en el mismo orden de
+    # factorization, por lo que cada ventana hereda la partición espacial.
+    mapa_pixel = {
+        (np.float32(lon), np.float32(lat)): int(grupo)
+        for lon, lat, grupo in zip(
+            df_scaled["longitude"], df_scaled["latitude"],
+            df_scaled["_pixel_group"]
+        )
+    }
+    pixel_ids = np.array([
+        mapa_pixel[(np.float32(lon), np.float32(lat))]
+        for lon, lat in coords
+    ], dtype=np.int64)
+    idx_train = np.isin(pixel_ids, list(grupos_train))
+    idx_val = np.isin(pixel_ids, list(grupos_val))
+    idx_test = np.isin(pixel_ids, list(grupos_test))
 
-    coords_train_all = coords[idx_train_all]
-    X_train_all, y_train_all = X[idx_train_all], y[idx_train_all]
-    pixel_train_all = pixel_ids[idx_train_all]
-
-    val_size_rel = val_ratio / (1 - test_ratio)
-    gss2 = GroupShuffleSplit(n_splits=1, test_size=val_size_rel, random_state=semilla)
-    idx_tr, idx_val = next(gss2.split(X_train_all, y_train_all, groups=pixel_train_all))
-
-    X_train, y_train = X_train_all[idx_tr], y_train_all[idx_tr]
-    X_val, y_val = X_train_all[idx_val], y_train_all[idx_val]
+    X_train, y_train = X[idx_train], y[idx_train]
+    X_val, y_val = X[idx_val], y[idx_val]
     X_test, y_test = X[idx_test], y[idx_test]
 
     resultado = {
         "X_train": X_train, "y_train": y_train,
         "X_val": X_val, "y_val": y_val,
         "X_test": X_test, "y_test": y_test,
-        "coords_train": coords[idx_train_all][idx_tr],
-        "coords_val": coords[idx_train_all][idx_val],
+        "coords_train": coords[idx_train],
+        "coords_val": coords[idx_val],
         "coords_test": coords[idx_test],
         "scaler_X": scaler_X, "scaler_y": scaler_y,
         "feature_cols": feature_cols, "target": target,

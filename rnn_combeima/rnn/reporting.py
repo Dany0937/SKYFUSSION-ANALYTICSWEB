@@ -27,6 +27,16 @@ def consolidar_resultados(raiz: str = "experiments") -> pd.DataFrame:
     return pd.concat(dfs, ignore_index=True)
 
 
+def separar_por_fuente(df: pd.DataFrame) -> dict:
+    """Separa resultados nuevos por fuente sin mezclar sintéticos y reales."""
+    if df.empty or "fuente" not in df.columns:
+        return {"sin_fuente": df}
+    return {
+        str(fuente): grupo.copy()
+        for fuente, grupo in df.groupby("fuente", dropna=False)
+    }
+
+
 def ranking_por_metrica(df: pd.DataFrame, metrica: str = "rmse",
                         ascendente: bool = True) -> pd.DataFrame:
     """Ranking de experimentos según métrica."""

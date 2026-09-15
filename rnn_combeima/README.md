@@ -40,12 +40,13 @@ rnn_combeima/
 
 ## Instalación
 
-Requiere **Python 3.12/3.13** (TensorFlow aún no soporta 3.14).
+Requiere **Python 3.12/3.13** (TensorFlow aún no soporta 3.14). En Windows,
+si hay varias versiones instaladas, usa `py -3.13` en los comandos del proyecto.
 
 ```bash
-pip install -r requirements.txt   # o: pip install tensorflow scikit-learn pandas numpy
-pip install earthengine-api       # para extracción real desde GEE
-earthengine authenticate          # una sola vez
+py -3.13 -m pip install -r requirements.txt
+py -3.13 -m pip install earthengine-api       # para extracción real desde GEE
+earthengine authenticate                       # una sola vez
 ```
 
 ## Uso
