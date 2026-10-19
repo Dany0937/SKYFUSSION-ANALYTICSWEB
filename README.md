@@ -2516,3 +2516,21 @@ graph TB
 ---
 
 *Skyfusion Analytics - Monitoreo inteligente para un futuro hídrico sostenible*
+
+---
+
+## 📦 Versión 1.0.0
+
+**Fecha:** 2026-10-18
+
+### Cambios realizados
+- **Documentación:** Enriquecimiento de la guía de desarrollo local con instrucciones de configuración, scripts disponibles y flujo de trabajo Git con formato Conventional Commits.
+
+### Próximos pasos
+- Continuar con la implementación de módulos de procesamiento de datos.
+- Ampliar la documentación del pipeline de IA predictiva.
+- Integrar sensores IoT reales en el entorno de prueba.
+
+---
+
+*Skyfusion Analytics - Monitoreo inteligente para un futuro hídrico sostenible*
