@@ -1,0 +1,46 @@
+{
+  "proyecto": "Red Neuronal Recurrente - Cuenca Río Combeima",
+  "fase_crisp_dm": "Fase 2 / EDA Completado",
+  "dataset_origen": "series_multisensor_combeima.csv",
+  "sensor": "MODIS/061/MOD13A2",
+  "muestras_totales": 4016,
+  "pixeles_unicos": 40,
+  "rango_temporal": [
+    "2015-01-01",
+    "2024-12-18"
+  ],
+  "target_primario": "NDVI",
+  "target_secundario": "EVI",
+  "features_recomendadas": [
+    "NDVI",
+    "EVI",
+    "mes_sin",
+    "mes_cos",
+    "doy_sin",
+    "doy_cos",
+    "NDVI_lag1",
+    "NDVI_lag2",
+    "NDVI_lag4",
+    "NDVI_ma3"
+  ],
+  "features_descartadas_o_metadatos": [
+    "SummaryQA",
+    "sensor",
+    "clase_cobertura"
+  ],
+  "estrategia_particion": "GroupShuffleSplit por (longitude, latitude)",
+  "timesteps_recomendados": 24,
+  "horizontes_evaluados": [
+    1,
+    4,
+    8
+  ],
+  "pca_componentes_retenidos_85pct": 4,
+  "random_state": 42,
+  "umbrales_clases_cobertura": {
+    "Agua_o_Suelo_desnudo": "< 0.10",
+    "Vegetacion_escasa": "0.10 - 0.30",
+    "Vegetacion_moderada": "0.30 - 0.60",
+    "Vegetacion_densa": ">= 0.60"
+  }
+}

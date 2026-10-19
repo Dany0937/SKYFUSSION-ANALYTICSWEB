@@ -11,7 +11,7 @@
 | Escalamiento sin leakage | Implementada | Los scalers se ajustan únicamente con los píxeles de entrenamiento. |
 | Entrenamiento RNN | Completada para baseline MODIS | Lote smoke y lote básico ejecutados con TensorFlow 2.20 en Python 3.13 sobre datos GEE reales. Mejor baseline actual: `gru_attention`, RMSE 0.0712, R² 0.0775. |
 | Clasificación MLP supervisada | Pendiente | Falta dataset Sentinel-2 con etiquetas `clase` verificables. |
-| EDA, matrices de confusión y mapas | Pendiente | Dependen de datos etiquetados y/o extracción GEE real. |
+| EDA, matrices de confusión y mapas | Completada (Semana 5) | Notebook notebooks/03_eda.ipynb, 14 figuras en reports/eda/, hallazgos_eda.csv y features_modelado.json completados sobre datos GEE reales MODIS. |
 
 Las corridas sintéticas existentes se conservan como validación histórica del pipeline y no representan resultados obtenidos con datos reales de GEE. Los resultados reales se consolidan en `rnn_combeima/reports/resumen_final.csv`.
 
