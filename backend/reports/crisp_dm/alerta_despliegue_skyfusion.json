@@ -1,0 +1,12 @@
+{
+  "timestamp_ejecucion": "2026-11-19T14:40:40.728410",
+  "cuenca": "R\u00edo Combeima (Tolima)",
+  "resolucion_reducida": "15 meses continuos (mes a mes)",
+  "pendiente_mensual_ndvi": 0.00087,
+  "r2_serie_15m": 0.0205,
+  "rmse_serie_15m": 0.026,
+  "acciones_agentes": {
+    "OracleAgent": "Usar la serie de 15 meses interpolada para alimentar la ventana temporal de predicci\u00f3n hidrol\u00f3gica.",
+    "ReportingAgent": "Generar ficha t\u00e9cnica ejecutiva de 1 p\u00e1gina con los 15 meses para la mesa t\u00e9cnica de Ibagu\u00e9."
+  }
+}

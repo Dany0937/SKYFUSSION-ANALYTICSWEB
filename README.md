@@ -9,6 +9,23 @@
 
 ---
 
+> **Reorganización 2026-11-22:** este clon de trabajo tiene tres carpetas de nivel raíz —
+> `frontend/` (React + Vite + Tailwind + Leaflet + Chart.js → Vercel),
+> `backend/` (FastAPI + OpenCV + inferencia + Gemini → Render) y
+> `docs/` (Astro/Starlight, intacto). La documentación maestro y la jerarquía de
+> evidencia de métricas están en **[`PROJECT_SPEC.md`](PROJECT_SPEC.md)**.
+>
+> | Contenido anterior | Ubicación actual |
+> |---|---|
+> | `agents/`, `skills/`, `rnn_combeima/`, `data/`, `reports/`, `notebooks/`, `scripts/`, `tests/`, `shared/` | `backend/` |
+> | `sesion7/`, `sesion8/`, `sesion9/` | `backend/archive/` |
+> | `services/backend-node/` | `backend/legacy/backend-node/` |
+> | Planes, `ARQUITECTURA_AZURE.md`, `PROJECT_STRUCTURE.md`, `docker-compose.yml` | `backend/docs/` |
+>
+> Las rutas antiguas que aparecen en el texto histórico de este README corresponden
+> a la estructura original; el repositorio `Skyfusion-Analytics` se conserva intacto
+> como original.
+
 ## 📋 Resumen Ejecutivo
 
 **Skyfusion Analytics** es una plataforma SaaS de análisis multitemporal y predicción ambiental diseñada para el monitoreo y gestión inteligente de cuencas hidrográficas. El sistema integra tecnologías de teledetección satelital, sensores IoT y drones UAV para proporcionar una visión holística del estado hídrico de un territorio.

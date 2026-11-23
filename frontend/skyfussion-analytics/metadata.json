@@ -1,0 +1,6 @@
+{
+  "name": "Skyfussion Analytics",
+  "description": "Consola hidroespacial de monitoreo satelital de cuencas hidrográficas y agente de reportes ejecutivos para alcaldías y autoridades ambientales.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

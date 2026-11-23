@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+DEMO_MODE=true
+GEMINI_API_KEY=AIzaSyDJEYRjqGawgxRH2wUNguH6im5SdMCGp0g
+ALLOWED_ORIGINS=http://localhost:5173

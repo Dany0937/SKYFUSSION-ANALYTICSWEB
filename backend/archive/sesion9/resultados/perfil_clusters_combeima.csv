@@ -1,0 +1,4 @@
+zona_nombre,num_pixeles,B2,B3,B4,B8,B11,B12,agua,arbustal,bosque,cultivo,pastizal,suelo_desnudo,urbano
+Z0 · Vegetación mixta,1113,692.7,892.0,757.7,2896.6,2117.7,1279.5,0.0,11.1,24.3,32.4,32.2,0.0,0.0
+Z1 · Suelo urbano-desnudo (riesgo),501,1836.8,2102.2,2221.1,2937.0,3269.3,2758.1,0.0,6.4,0.0,5.4,4.0,50.1,34.1
+Z2 · Cuerpos de agua,310,783.6,1020.6,708.4,576.0,441.4,274.7,94.5,1.9,0.0,0.0,1.9,1.6,0.0

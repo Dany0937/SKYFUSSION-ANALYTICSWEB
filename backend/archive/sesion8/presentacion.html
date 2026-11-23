@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 8 · Clasificación II: Naive Bayes y K-Vecinos en SkyFusion</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #38bdf8;
+      --accent: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --code-bg: #090d16;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .presentation-container { width: 100%; max-width: 1050px; height: 680px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.6); }
+    .header .tag { font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+    .header .title-mini { font-size: 0.9rem; color: var(--muted); }
+    .slide-body { flex: 1; padding: 40px; overflow-y: auto; display: none; }
+    .slide-body.active { display: flex; flex-direction: column; justify-content: center; }
+    h1 { font-size: 2.3rem; color: #fff; margin-bottom: 16px; line-height: 1.2; }
+    h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 20px; }
+    h3 { font-size: 1.2rem; color: var(--accent); margin-bottom: 12px; }
+    p, li { font-size: 1.05rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 12px; }
+    ul { margin-left: 24px; margin-bottom: 16px; }
+    .footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.6); }
+    .nav-btn { background: #334155; border: none; color: white; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .nav-btn:hover { background: var(--primary); color: #000; }
+    .badge { display: inline-block; padding: 4px 10px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; color: var(--primary); font-size: 0.85rem; font-weight: 600; margin-right: 8px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; }
+    th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+    th { background: #0f172a; color: var(--primary); }
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    pre { background: var(--code-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border); color: #38bdf8; font-family: 'Consolas', monospace; font-size: 0.9rem; overflow-x: auto; margin: 12px 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="presentation-container">
+  <div class="header">
+    <div class="tag">Minería de Datos · UNIMINUTO Ibagué</div>
+    <div class="title-mini">Skyfusion Analytics · Cuenca del Río Combeima</div>
+  </div>
+
+  <!-- Diapositiva 1 -->
+  <div class="slide-body active" id="slide-1">
+    <span class="badge">Unidad 2 · 120 min</span><span class="badge">Taller Práctico</span>
+    <h1>Probabilidades y Vecindarios: Dos Rivales para el Árbol de la Cuenca</h1>
+    <h3>Sesión 8 · Clasificación II: Naive Bayes y K-Vecinos en SkyFusion</h3>
+    <p>Construir, evaluar y comparar modelos supervisados alternativos sobre el split congelado de imágenes Sentinel-2 y WorldCover 2021 del río Combeima.</p>
+  </div>
+
+  <!-- Diapositiva 2 -->
+  <div class="slide-body" id="slide-2">
+    <h2>2. El Gancho: De Filtros de Spam a Sensores Remotos</h2>
+    <p>Naive Bayes protege bandejas con 99,9% de precisión asumiendo palabras independientes. KNN busca en milésimas al cliente más similar.</p>
+    <div class="card">
+      <h3>¿Qué gana Skyfusion con modelos que no explican sus reglas?</h3>
+      <p>El árbol entrega narrativa institucional para la CORTOLIMA; Naive Bayes entrega velocidad de cálculo instantáneo; KNN busca "gemelos espectrales" para clasificar zonas difíciles.</p>
+    </div>
+  </div>
+
+  <!-- Diapositiva 3 -->
+  <div class="slide-body" id="slide-3">
+    <h2>3. Objetivos de Aprendizaje</h2>
+    <ul>
+      <li><strong>1. Teorema de Bayes aplicado:</strong> Calcular probabilidades condicionales simples (NDWI alto dado agua).</li>
+      <li><strong>2. Modelos supervisados:</strong> Entrenar GaussianNB y KNeighborsClassifier sobre el split congelado.</li>
+      <li><strong>3. Justificación del escalado:</strong> Probar el impacto de mezclar bandas (0-10.000) con índices (-1..1).</li>
+      <li><strong>4. Torneo técnico y recomendación:</strong> Comparar Árbol, NB y KNN en Macro-F1, Accuracy y latencia.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 4 -->
+  <div class="slide-body" id="slide-4">
+    <h2>4. Agenda de la Sesión (120 min)</h2>
+    <table>
+      <tr><th>Tiempo</th><th>Bloque</th><th>Actividad</th></tr>
+      <tr><td>00:00 - 00:05</td><td>Apertura</td><td>Repaso del Árbol de la Sesión 7 (Macro-F1 0.6595)</td></tr>
+      <tr><td>00:05 - 00:25</td><td>Teoría I</td><td>Teorema de Bayes, prior, verosimilitud y Naive Bayes</td></tr>
+      <tr><td>00:25 - 00:40</td><td>Teoría II</td><td>KNN, distancias euclidianas espectrales, efecto de k y escalado</td></tr>
+      <tr><td>00:45 - 01:05</td><td>Demo Guiada</td><td>Torneo en vivo sobre split congelado (Python + scikit-learn)</td></tr>
+      <tr><td>01:05 - 01:40</td><td>Taller en Clase</td><td>Torneo propio, barrido de k y redacción del veredicto</td></tr>
+      <tr><td>01:40 - 02:00</td><td>Cierre</td><td>Socialización, evaluación formativa y anticipo de Clustering</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 5 -->
+  <div class="slide-body" id="slide-5">
+    <h2>5. Conexión con Sesión 7: La Marca a Superar</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Árbol Depth 5 · Entropy</h3>
+        <p><strong>Dataset GEE:</strong> 1.924 filas · 7 clases · 11 features</p>
+        <p><strong>Split:</strong> 1.443 Train / 481 Test (semilla 42)</p>
+        <p><strong>Accuracy Test:</strong> 0.6674</p>
+        <p><strong>Macro-F1 Test:</strong> 0.6595</p>
+      </div>
+      <div class="card">
+        <h3>Regla de Oro Metodológica</h3>
+        <p>Para competir con honestidad científica, Naive Bayes y KNN deben evaluarse exactamente con los mismos 481 píxeles de prueba congelados, sin fuga de datos.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diapositiva 6 -->
+  <div class="slide-body" id="slide-6">
+    <h2>6. Teorema de Bayes en Teledetección</h2>
+    <p>Combinamos la evidencia espectral con la abundancia natural (prior) de la cobertura:</p>
+    <pre>P(Agua | NDWI alto) = [ P(NDWI alto | Agua) * P(Agua) ] / P(NDWI alto)</pre>
+    <p>Aunque un píxel tenga NDWI moderado, si está en una ladera alta donde el prior de agua es 0,1%, la probabilidad a posteriori ajusta la predicción evitando falsos positivos.</p>
+  </div>
+
+  <!-- Diapositiva 7 -->
+  <div class="slide-body" id="slide-7">
+    <h2>7. De Bayes a Naive Bayes</h2>
+    <p>El supuesto "ingenuo": <em>las bandas e índices son condicionalmente independientes dada la clase</em>.</p>
+    <pre>P(B2, B3, ..., NDWI | Clase) = ∏ P(Variable_i | Clase)</pre>
+    <p><strong>En SkyFusion:</strong> El supuesto es falso (B4 y B3 están fuertemente correlacionadas), pero la frontera de decisión sigue siendo útil como baseline ultra-veloz.</p>
+  </div>
+
+  <!-- Diapositiva 8 -->
+  <div class="slide-body" id="slide-8">
+    <h2>8. Cuándo Brilla Naive Bayes y sus Límites</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Ventajas Clave</h3>
+        <ul>
+          <li>Entrenamiento casi instantáneo (solo calcula medias y varianzas).</li>
+          <li>Inmune a la maldición de la dimensionalidad en datasets pequeños.</li>
+          <li>Ideal para procesamiento continuo en streaming.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Limitaciones en GEE</h3>
+        <ul>
+          <li>Sobrestima confianza (probabilidades mal calibradas).</li>
+          <li>Doble conteo de evidencia cuando se incluyen bandas e índices derivados juntos.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diapositiva 9 -->
+  <div class="slide-body" id="slide-9">
+    <h2>9. KNN: Dime con Quién Andas</h2>
+    <p>KNN es un algoritmo perezoso (<em>lazy learning</em>): no construye un modelo explícito, almacena los 1.443 píxeles de entrenamiento.</p>
+    <div class="card">
+      <h3>El concepto de "Gemelos de Cobertura"</h3>
+      <p>Un píxel desconocido en la cuenca calcula su distancia a todos los píxeles históricos en el espacio de 11 dimensiones y toma la clase mayoritaria de sus <strong>k vecinos más cercanos</strong>.</p>
+    </div>
+  </div>
+
+  <!-- Diapositiva 10 -->
+  <div class="slide-body" id="slide-10">
+    <h2>10. Distancia Euclidiana en el Espacio Espectral</h2>
+    <p>Dado un píxel nuevo con (B3=900, B8=2900) frente a 3 píxeles conocidos:</p>
+    <table>
+      <tr><th>Candidato</th><th>B3 (Verde)</th><th>B8 (NIR)</th><th>Distancia Euclidiana</th><th>Clase</th></tr>
+      <tr><td>Píxel A</td><td>880</td><td>2950</td><td>√(20² + 50²) = 53.8</td><td>Bosque</td></tr>
+      <tr><td>Píxel B</td><td>920</td><td>2850</td><td>√(20² + 50²) = 53.8</td><td>Cultivo</td></tr>
+      <tr><td>Píxel C</td><td>1500</td><td>1800</td><td>√(600² + 1100²) = 1253.0</td><td>Urbano</td></tr>
+    </table>
+    <p>Con k=1 o k=2, los vecinos inmediatos descartan el área urbana sin ambigüedad.</p>
+  </div>
+
+  <!-- Diapositiva 11 -->
+  <div class="slide-body" id="slide-11">
+    <h2>11. Efecto del Hiperparámetro k en SkyFusion</h2>
+    <table>
+      <tr><th>k</th><th>Accuracy Train</th><th>Accuracy Test</th><th>Macro-F1 Test</th><th>Diagnóstico</th></tr>
+      <tr><td>k=1</td><td>1.0000</td><td>0.7484</td><td>0.7380</td><td>Sobreajuste a ruido local</td></tr>
+      <tr><td>k=5</td><td>0.8267</td><td><strong>0.7443</strong></td><td><strong>0.7301</strong></td><td><strong>Punto óptimo de generalización</strong></td></tr>
+      <tr><td>k=11</td><td>0.7810</td><td>0.7360</td><td>0.7180</td><td>Frontera suave, buena estabilidad</td></tr>
+      <tr><td>k=31</td><td>0.7220</td><td>0.7193</td><td>0.6950</td><td>Comienza a diluir clases minoritarias</td></tr>
+      <tr><td>k=101</td><td>0.6650</td><td>0.6445</td><td>0.5980</td><td>Subajuste; domina la clase mayoritaria</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 12 -->
+  <div class="slide-body" id="slide-12">
+    <h2>12. ¿Por qué Escalar en KNN? Evidencia Empírica</h2>
+    <div class="card">
+      <p>Bandas en reflectancia entera (0 a 10.000) conviven con índices normalizados (-1.0 a +1.0). Si no se escala, las bandas absorben el 99,9% de la distancia euclidiana.</p>
+    </div>
+    <ul style="margin-top: 15px;">
+      <li>Con 11 variables (bandas + índices): KNN sin escalar 0.7401 → escalado <strong>0.7443</strong> (+0.4%).</li>
+      <li>Con solo índices (NDVI, NDWI, NDBI, B8/B4): sin escalar 0.6258 → escalado <strong>0.6528</strong> (+2.7%).</li>
+    </ul>
+    <p><em>Regla de oro:</em> El escalado siempre se ajusta en train dentro de un Pipeline.</p>
+  </div>
+
+  <!-- Diapositiva 13 -->
+  <div class="slide-body" id="slide-13">
+    <h2>13. Código: Carga Limpia con Split Congelado</h2>
+    <pre>
+import json, pandas as pd
+from pathlib import Path
+
+split = json.loads(Path("sesion7/resultados/metricas_split.json").read_text())
+df = pd.read_csv("sesion7/datasets/sentinel2_combeima_clases.csv")
+
+X = df[split["features_orden"]].astype(float)
+y = df["clase"].astype(str)
+
+X_train, X_test = X.loc[split["indices_train"]], X.loc[split["indices_test"]]
+y_train, y_test = y.loc[split["indices_train"]], y.loc[split["indices_test"]]
+    </pre>
+  </div>
+
+  <!-- Diapositiva 14 -->
+  <div class="slide-body" id="slide-14">
+    <h2>14. Marcador Real del Torneo (Split GEE)</h2>
+    <table>
+      <tr><th>Modelo</th><th>Acc Train</th><th>Acc Test</th><th>Macro-F1</th><th>Balanced Acc</th></tr>
+      <tr><td>Árbol depth 5 (entropy)</td><td>0.7401</td><td>0.6674</td><td>0.6595</td><td>0.6574</td></tr>
+      <tr><td>GaussianNB</td><td>0.6057</td><td>0.5800</td><td>0.5588</td><td>0.5882</td></tr>
+      <tr><td>KNN k=5 (sin escalar)</td><td>0.8254</td><td>0.7401</td><td>0.7264</td><td>0.7349</td></tr>
+      <tr><td><strong>KNN k=5 (escalado)</strong></td><td>0.8267</td><td><strong>0.7443</strong></td><td><strong>0.7301</strong></td><td><strong>0.7333</strong></td></tr>
+      <tr><td>KNN k=5 (solo índices, esc.)</td><td>0.7210</td><td>0.6528</td><td>0.6266</td><td>0.6420</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 15 -->
+  <div class="slide-body" id="slide-15">
+    <h2>15. Análisis Comparativo Multicriterio</h2>
+    <table>
+      <tr><th>Criterio</th><th>Árbol de Decisión</th><th>GaussianNB</th><th>KNN (k=5)</th></tr>
+      <tr><td>Interpretabilidad</td><td>⭐⭐⭐⭐⭐ (Reglas visuales)</td><td>⭐⭐⭐ (Probabilidades)</td><td>⭐ (Caja negra de distancia)</td></tr>
+      <tr><td>Tiempo Entrenamiento</td><td>Rápido</td><td>Instantáneo</td><td>Cero (Lazy)</td></tr>
+      <tr><td>Tiempo Predicción</td><td>Instantáneo</td><td>Instantáneo</td><td>Lento O(N*d)</td></tr>
+      <tr><td>Macro-F1</td><td>0.6595</td><td>0.5588</td><td><strong>0.7301</strong></td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 16 -->
+  <div class="slide-body" id="slide-16">
+    <h2>16. Caso de Uso en la Vida Real: Operación Skyfusion</h2>
+    <p>En el despliegue productivo de Skyfusion Analytics conviven los tres enfoques:</p>
+    <ul>
+      <li><strong>OracleAgent:</strong> Usa KNN k=5 para mapeo espectral de alta precisión en tiles complejos.</li>
+      <li><strong>ReportingAgent:</strong> Traduce la salida con el Árbol de Decisión para entregar explicaciones auditables a CORTOLIMA y a la Alcaldía.</li>
+      <li><strong>Red Neuronal (Fase Final):</strong> Utiliza las probabilidades de estos baselines como features aumentadas.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 17 -->
+  <div class="slide-body" id="slide-17">
+    <h2>17. Taller Práctico: Tu Propio Torneo</h2>
+    <p>Pasos a desarrollar en equipos:</p>
+    <ol>
+      <li>Montar el script comparativo importando el split congelado.</li>
+      <li>Entrenar Árbol, GaussianNB y KNN.</li>
+      <li>Explorar k en [1, 3, 5, 11, 21, 51] y graficar la curva de train vs test.</li>
+      <li>Probar la opción <code>weights='distance'</code> en KNeighborsClassifier.</li>
+      <li>Redactar un veredicto técnico de 8 líneas sustentando la elección.</li>
+    </ol>
+  </div>
+
+  <!-- Diapositiva 18 -->
+  <div class="slide-body" id="slide-18">
+    <h2>18. Criterios Técnicos y Buenas Prácticas</h2>
+    <ul>
+      <li>Usar <code>make_pipeline(StandardScaler(), KNeighborsClassifier())</code> para blindar contra fuga.</li>
+      <li>Evaluar siempre en test congelado con <code>f1_score(y_test, y_pred, average='macro')</code>.</li>
+      <li>No usar k par para clasificación binaria o con desbalance cerrado.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 19 -->
+  <div class="slide-body" id="slide-19">
+    <h2>19. Rúbrica de Evaluación Formativa</h2>
+    <table>
+      <tr><th>Criterio</th><th>Peso</th><th>Evidencia Requerida</th></tr>
+      <tr><td>Tabla de Resultados</td><td>40%</td><td>Métricas de los 3 modelos con train y test</td></tr>
+      <tr><td>Exploración de k</td><td>20%</td><td>Justificación analítica del valor óptimo</td></tr>
+      <tr><td>Veredicto Técnico</td><td>40%</td><td>Defensa de 90 segundos conectada a alertas de cuenca</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 20 -->
+  <div class="slide-body" id="slide-20">
+    <h2>20. Errores Comunes a Evitar</h2>
+    <ul>
+      <li>❌ Ajustar el <code>StandardScaler</code> sobre todo el DataFrame antes del split.</li>
+      <li>❌ Quedarse solo con accuracy global ignorando el Macro-F1 de clases escasas (ej. Agua).</li>
+      <li>❌ Medir únicamente tiempo de <code>fit()</code> y olvidar que KNN paga el costo en <code>predict()</code>.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 21 -->
+  <div class="slide-body" id="slide-21">
+    <h2>21. Trabajo Independiente para el Avance 2</h2>
+    <p>Consolidar en el cuaderno <code>modelos_v1_avance2.ipynb</code>:</p>
+    <ul>
+      <li>Matriz de confusión normalizada de KNN vs Árbol.</li>
+      <li>Análisis de sensibilidad frente a ruido en bandas SWIR.</li>
+      <li>Preparación para la Sesión 9: ¿Qué ocurre cuando no existen etiquetas WorldCover?</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 22 -->
+  <div class="slide-body" id="slide-22">
+    <h2>22. Cierre y Conclusiones de la Sesión</h2>
+    <div class="card">
+      <p><strong>Marcador final:</strong> GaussianNB (0.5800) < Árbol (0.6674) < KNN (0.7443).</p>
+      <p>KNN se corona ganador en capacidad predictiva, pero el árbol preserva la explicabilidad requerida por la gestión del riesgo.</p>
+      <p style="margin-top: 10px; color: var(--accent);"><strong>Próxima Sesión:</strong> Descubrir la estructura oculta de la cuenca con K-Means y Clustering Jerárquico.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="nav-btn" onclick="prevSlide()">❮ Anterior</button>
+    <div id="slide-counter">Diapositiva 1 / 22</div>
+    <button class="nav-btn" onclick="nextSlide()">Siguiente ❯</button>
+  </div>
+</div>
+
+<script>
+  let currentSlide = 1;
+  const totalSlides = 22;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide-body').forEach(el => el.classList.remove('active'));
+    document.getElementById(`slide-${n}`).classList.add('active');
+    document.getElementById('slide-counter').innerText = `Diapositiva ${n} / ${totalSlides}`;
+  }
+
+  function nextSlide() {
+    if (currentSlide < totalSlides) {
+      currentSlide++;
+      showSlide(currentSlide);
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 1) {
+      currentSlide--;
+      showSlide(currentSlide);
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+    if (e.key === 'ArrowLeft') prevSlide();
+  });
+</script>
+
+</body>
+</html>

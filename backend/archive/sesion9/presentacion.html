@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesión 9 · Aprendizaje No Supervisado: K-Means y Jerárquico en SkyFusion</title>
+  <style>
+    :root {
+      --bg: #0b132b;
+      --card-bg: #1c2541;
+      --primary: #48cae4;
+      --accent: #52b788;
+      --text: #f8fafc;
+      --muted: #8d99ae;
+      --border: #3a506b;
+      --code-bg: #070d1e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .presentation-container { width: 100%; max-width: 1050px; height: 680px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(11, 19, 43, 0.7); }
+    .header .tag { font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+    .header .title-mini { font-size: 0.9rem; color: var(--muted); }
+    .slide-body { flex: 1; padding: 40px; overflow-y: auto; display: none; }
+    .slide-body.active { display: flex; flex-direction: column; justify-content: center; }
+    h1 { font-size: 2.3rem; color: #fff; margin-bottom: 16px; line-height: 1.2; }
+    h2 { font-size: 1.8rem; color: var(--primary); margin-bottom: 20px; }
+    h3 { font-size: 1.2rem; color: var(--accent); margin-bottom: 12px; }
+    p, li { font-size: 1.05rem; line-height: 1.6; color: #cbd5e1; margin-bottom: 12px; }
+    ul { margin-left: 24px; margin-bottom: 16px; }
+    .footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(11, 19, 43, 0.7); }
+    .nav-btn { background: #3a506b; border: none; color: white; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .nav-btn:hover { background: var(--primary); color: #000; }
+    .badge { display: inline-block; padding: 4px 10px; background: rgba(72, 202, 228, 0.15); border: 1px solid rgba(72, 202, 228, 0.3); border-radius: 6px; color: var(--primary); font-size: 0.85rem; font-weight: 600; margin-right: 8px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.95rem; }
+    th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+    th { background: #0b132b; color: var(--primary); }
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    pre { background: var(--code-bg); padding: 16px; border-radius: 8px; border: 1px solid var(--border); color: #48cae4; font-family: 'Consolas', monospace; font-size: 0.9rem; overflow-x: auto; margin: 12px 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: rgba(11, 19, 43, 0.5); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+  </style>
+</head>
+<body>
+
+<div class="presentation-container">
+  <div class="header">
+    <div class="tag">Minería de Datos · UNIMINUTO Ibagué</div>
+    <div class="title-mini">Skyfusion Analytics · Cuenca del Río Combeima</div>
+  </div>
+
+  <!-- Diapositiva 1 -->
+  <div class="slide-body active" id="slide-1">
+    <span class="badge">Unidad 2 · 120 min</span><span class="badge">Ejercicios en Clase</span>
+    <h1>Aprendizaje No Supervisado: Descubrir las Zonas Naturales de la Cuenca</h1>
+    <h3>Sesión 9 · K-Means y Clustering Jerárquico en SkyFusion</h3>
+    <p>Descubrir estructura latente en 1.924 píxeles Sentinel-2 sin etiquetas y defender una segmentación ambiental accionable para la cuenca del Combeima.</p>
+  </div>
+
+  <!-- Diapositiva 2 -->
+  <div class="slide-body" id="slide-2">
+    <h2>2. El Gancho: ¿Una Sola Alerta para Toda la Cuenca?</h2>
+    <div class="card">
+      <p>Una alerta general de lluvia o calor emitida para todo Ibagué fracasa: el agua reacciona con crecientes torrenciales, la roca desnuda con deslizamientos y el bosque con absorción hídrica.</p>
+    </div>
+    <p style="margin-top: 15px;"><strong>Skyfusion necesita segmentar:</strong> Descubrir grupos homogéneos de comportamiento espectral para dirigir alertas diferenciadas a cada zona.</p>
+  </div>
+
+  <!-- Diapositiva 3 -->
+  <div class="slide-body" id="slide-3">
+    <h2>3. Objetivos de Aprendizaje</h2>
+    <ul>
+      <li><strong>1. Diferenciar paradigmas:</strong> Supervisado (aprender de WorldCover) vs No Supervisado (descubrir clusters espectrales autónomamente).</li>
+      <li><strong>2. Dominar K-Means:</strong> Comprender iteraciones, convergencia, método del codo (inercia) y silueta.</li>
+      <li><strong>3. Segmentar Combeima:</strong> Agrupar con StandardScaler + KMeans sobre 6 bandas espectrales (B2-B12).</li>
+      <li><strong>4. Perfilar y nombrar:</strong> Asignar significado operativo a los clusters y validar con dendrograma Ward.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 4 -->
+  <div class="slide-body" id="slide-4">
+    <h2>4. Agenda de la Sesión (120 min)</h2>
+    <table>
+      <tr><th>Tiempo</th><th>Bloque</th><th>Contenido</th></tr>
+      <tr><td>00:00 - 00:05</td><td>Conexión</td><td>¿Qué pasa si apagamos la columna WorldCover 'clase'?</td></tr>
+      <tr><td>00:05 - 00:25</td><td>Teoría I</td><td>Supervisado vs no supervisado, K-Means paso a paso</td></tr>
+      <tr><td>00:25 - 00:35</td><td>Teoría II</td><td>Inercia, método del codo y coeficiente de silueta</td></tr>
+      <tr><td>00:40 - 01:00</td><td>Demo Guiada</td><td>Segmentación en Python y cálculo de centroides</td></tr>
+      <tr><td>01:00 - 01:10</td><td>Jerárquico</td><td>Dendrograma sobre muestra de 60 píxeles</td></tr>
+      <tr><td>01:10 - 01:45</td><td>Taller</td><td>Segmentar, nombrar zonas y diseñar alertas para agentes</td></tr>
+      <tr><td>01:45 - 02:00</td><td>Cierre</td><td>Socialización, evaluación y anticipo de reglas de asociación</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 5 -->
+  <div class="slide-body" id="slide-5">
+    <h2>5. Conexión con Sesión 8: Apagando las Etiquetas</h2>
+    <p>En la Sesión 8, KNN compitió guiado por la etiqueta <code>clase</code> de WorldCover 2021.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3>El Límite de las Etiquetas</h3>
+        <p>Las etiquetas humanas o satelitales son costosas, estáticas y sufren retrasos de años. WorldCover es 2021; la cuenca cambia cada semana.</p>
+      </div>
+      <div class="card">
+        <h3>La Pregunta de Hoy</h3>
+        <p><em>¿Qué macro-zonas naturales emergen directamente de la radiometría de las bandas Sentinel-2 sin intervención humana?</em></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diapositiva 6 -->
+  <div class="slide-body" id="slide-6">
+    <h2>6. Supervisado vs No Supervisado</h2>
+    <table>
+      <tr><th>Dimensión</th><th>Supervisado (Sesiones 7-8)</th><th>No Supervisado (Sesión 9)</th></tr>
+      <tr><td>Entrada</td><td>Variables X + Etiqueta y</td><td>Únicamente variables X</td></tr>
+      <tr><td>Objetivo</td><td>Predecir clase conocida</td><td>Descubrir agrupaciones intrínsecas</td></tr>
+      <tr><td>Métricas</td><td>Accuracy, Macro-F1, Matriz de Confusión</td><td>Inercia, Silueta, Davies-Bouldin</td></tr>
+      <tr><td>Rol en Skyfusion</td><td>Clasificador de terreno</td><td>Segmentación de cuenca / Nueva feature para RNA</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 7 -->
+  <div class="slide-body" id="slide-7">
+    <h2>7. Casos de Uso Ambientales de Clustering</h2>
+    <ul>
+      <li><strong>Zonificación ecológica rápida:</strong> Identificar áreas degradadas sin cartografía previa.</li>
+      <li><strong>Monitoreo de anomalías:</strong> Detectar píxeles que caen fuera de los clusters habituales (posibles incendios o minería ilegal).</li>
+      <li><strong>Compresión y reducción de datos:</strong> Representar millones de píxeles mediante 3 a 5 centroides espectrales.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 8 -->
+  <div class="slide-body" id="slide-8">
+    <h2>8. K-Means Paso a Paso: Farolas en la Cuenca</h2>
+    <ol>
+      <li><strong>Inicialización:</strong> Sembrar k centroides iniciales (con estrategia inteligente <code>k-means++</code>).</li>
+      <li><strong>Asignación:</strong> Cada píxel se asocia al centroide más próximo en distancia euclidiana normalizada.</li>
+      <li><strong>Actualización:</strong> Se recalcula cada centroide como el promedio vectorial de sus píxeles asignados.</li>
+      <li><strong>Convergencia:</strong> Se itera hasta que los centroides no cambien su posición (mínima inercia).</li>
+    </ol>
+  </div>
+
+  <!-- Diapositiva 9 -->
+  <div class="slide-body" id="slide-9">
+    <h2>9. Método del Codo: La Inercia en Combeima</h2>
+    <p>La inercia (suma de distancias al cuadrado al centroide) disminuye con k:</p>
+    <table>
+      <tr><th>k</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>8</th></tr>
+      <tr><td>Inercia</td><td>11.544</td><td>5.976</td><td>4.143</td><td>2.820</td><td>2.378</td><td>1.661</td></tr>
+    </table>
+    <p>Se observa una flexión o "codo" natural entre <strong>k=2 y k=4</strong>, reduciendo drásticamente la dispersión sin sobre-fragmentar la cuenca.</p>
+  </div>
+
+  <!-- Diapositiva 10 -->
+  <div class="slide-body" id="slide-10">
+    <h2>10. Coeficiente de Silueta: Cohesión vs Separación</h2>
+    <p>Mide qué tan cerca está cada píxel de su cluster frente al cluster vecino más cercano (-1.0 a +1.0):</p>
+    <table>
+      <tr><th>k</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>8</th></tr>
+      <tr><td>Silueta</td><td><strong>0.463</strong></td><td>0.440</td><td>0.439</td><td>0.425</td><td>0.349</td><td>0.332</td></tr>
+    </table>
+    <p>k=2 tiene la mayor silueta matemática, pero <strong>k=3</strong> es la solución óptima para operaciones de alerta en Skyfusion (separa Agua, Riesgo y Vegetación).</p>
+  </div>
+
+  <!-- Diapositiva 11 -->
+  <div class="slide-body" id="slide-11">
+    <h2>11. Código: Estandarización y Búsqueda de k</h2>
+    <pre>
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+
+V = ["B2", "B3", "B4", "B8", "B11", "B12"]
+X_scaled = StandardScaler().fit_transform(df[V])
+
+for k in range(2, 9):
+    km = KMeans(n_clusters=k, n_init=10, random_state=42)
+    labels = km.fit_predict(X_scaled)
+    print(k, round(km.inertia_), round(silhouette_score(X_scaled, labels), 3))
+    </pre>
+  </div>
+
+  <!-- Diapositiva 12 -->
+  <div class="slide-body" id="slide-12">
+    <h2>12. Código: Modelo Final k=3 y Perfilamiento</h2>
+    <pre>
+# Modelo final
+df["cluster"] = KMeans(n_clusters=3, n_init=10, random_state=42).fit_predict(X_scaled)
+
+# Promedios espectrales originales (para interpretación física)
+perfil = df.groupby("cluster")[V].mean().round(1)
+
+# Comprobación de composición WorldCover (sin haberla usado en el entrenamiento)
+composicion = df.groupby("cluster")["clase"].value_counts(normalize=True).unstack()
+    </pre>
+  </div>
+
+  <!-- Diapositiva 13 -->
+  <div class="slide-body" id="slide-13">
+    <h2>13. Nombrar las Zonas: De Números a Negocio</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Z0 · Vegetación Mixta (1.113 píxeles)</h3>
+        <p>B8 alto (2.898), baja reflectancia visible. 73% compuesto por bosque, cultivo y pastizal. Zona de recarga hídrica.</p>
+      </div>
+      <div class="card">
+        <h3>Z1 · Suelo Urbano-Desnudo (501 píxeles)</h3>
+        <p>B11/B12 elevados (3.273 y 2.755). 50% suelo desnudo + 34% urbano. Zona crítica de erosión y deslizamientos.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top: 15px;">
+      <h3>Z2 · Cuerpos de Agua (310 píxeles)</h3>
+      <p>Absorción total en NIR (B8=574) y SWIR (B12=275). Pureza del 94.5% agua. Eje fluvial del río Combeima.</p>
+    </div>
+  </div>
+
+  <!-- Diapositiva 14 -->
+  <div class="slide-body" id="slide-14">
+    <h2>14. Clustering Jerárquico Aglomerativo</h2>
+    <p>Enfoque <em>bottom-up</em>: cada píxel comienza como un cluster individual y se fusionan sucesivamente los más cercanos según el criterio de mínima varianza (<strong>Ward</strong>).</p>
+    <div class="card">
+      <h3>Ventaja Clave</h3>
+      <p>No exige fijar k a priori: el dendrograma muestra la jerarquía completa de agrupamiento.</p>
+    </div>
+  </div>
+
+  <!-- Diapositiva 15 -->
+  <div class="slide-body" id="slide-15">
+    <h2>15. Dendrograma sobre Muestra Representativa (60 Píxeles)</h2>
+    <p>Se evalúa una muestra balanceada de 60 píxeles para visualización nítida:</p>
+    <ul>
+      <li>Primeras fusiones a distancias bajas (0.12 - 0.30): píxeles casi idénticos.</li>
+      <li>Últimas fusiones a distancias elevadas (>15.0): fusión de agua frente a masa terrestre.</li>
+      <li><strong>Corte horizontal a distancia ~6.5:</strong> Confirma la existencia de 3 ramas maestras concordantes con k=3 de K-Means.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 16 -->
+  <div class="slide-body" id="slide-16">
+    <h2>16. K-Means vs Clustering Jerárquico</h2>
+    <table>
+      <tr><th>Atributo</th><th>K-Means</th><th>Jerárquico (Ward)</th></tr>
+      <tr><td>Escalabilidad</td><td>Alta (O(N*k*i)) → Todo Combeima</td><td>Baja (O(N² log N)) → Muestras</td></tr>
+      <tr><td>Determinismo</td><td>Depende de semilla inicial</td><td>100% determinista</td></tr>
+      <tr><td>Forma de Clusters</td><td>Asume clusters esféricos</td><td>Detecta jerarquías multiescala</td></tr>
+      <tr><td>Rol en Skyfusion</td><td>Asignación final en producción</td><td>Validación estructural visual</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 17 -->
+  <div class="slide-body" id="slide-17">
+    <h2>17. Limitaciones y Advertencias Metodológicas</h2>
+    <ul>
+      <li><strong>Sensibilidad a escala:</strong> Si no se estandarizan las bandas, el clustering se corrompe.</li>
+      <li><strong>k es una decisión de negocio:</strong> Las métricas sugieren k=2 o k=3; la necesidad operativa de segregar agua decide k=3.</li>
+      <li><strong>Autocorrelación espacial:</strong> Píxeles contiguos tienden a parecerse por geografía, no solo por tipo de vegetación.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 18 -->
+  <div class="slide-body" id="slide-18">
+    <h2>18. De la Segmentación a la Alerta Multiagente</h2>
+    <p>Integración en la arquitectura de Skyfusion Analytics:</p>
+    <ul>
+      <li><strong>Z2 (Agua):</strong> <code>OracleAgent</code> monitorea caudal y emite alerta de avenida torrencial si B8 sube por turbidez.</li>
+      <li><strong>Z1 (Suelo/Urbano):</strong> <code>VisionAgent</code> vigila laderas y <code>ReportingAgent</code> notifica riesgo de deslizamiento.</li>
+      <li><strong>Z0 (Vegetación):</strong> Seguimiento de salud de la cuenca y recarga hídrica para el acueducto de Ibagué.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 19 -->
+  <div class="slide-body" id="slide-19">
+    <h2>19. Ejercicio Práctico en Clase</h2>
+    <ol>
+      <li>Cargar el dataset de Combeima y normalizar las 6 bandas con StandardScaler.</li>
+      <li>Graficar la curva de inercia y silueta para k=2..6.</li>
+      <li>Justificar la elección de k con argumentos matemáticos y operativos.</li>
+      <li>Generar el resumen de perfiles espectrales con <code>groupby('cluster').mean()</code>.</li>
+      <li>Diseñar una regla de alerta específica para el agente correspondiente a cada zona.</li>
+    </ol>
+  </div>
+
+  <!-- Diapositiva 20 -->
+  <div class="slide-body" id="slide-20">
+    <h2>20. Criterios de Calidad del Ejercicio</h2>
+    <ul>
+      <li><strong>Prohibido incluir IDs o coordenadas geográficas</strong> dentro de las variables de clustering.</li>
+      <li><strong>Prohibido incluir la columna <code>clase</code></strong> en la matriz X.</li>
+      <li>Sustentar perfiles con las medias de las bandas y la distribución porcentual.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 21 -->
+  <div class="slide-body" id="slide-21">
+    <h2>21. Rúbrica de Logro</h2>
+    <table>
+      <tr><th>Elemento</th><th>Ponderación</th><th>Criterio de Evaluación</th></tr>
+      <tr><td>Curvas Codo y Silueta</td><td>30%</td><td>Cálculo sin errores y gráfica clara</td></tr>
+      <tr><td>Perfilamiento Espectral</td><td>30%</td><td>Medias de bandas interpretadas físicamente</td></tr>
+      <tr><td>Nombres y Alertas</td><td>30%</td><td>Traducción a acciones de los agentes Skyfusion</td></tr>
+      <tr><td>Rigor Metodológico</td><td>10%</td><td>Escalado y reproducibilidad (semilla 42)</td></tr>
+    </table>
+  </div>
+
+  <!-- Diapositiva 22 -->
+  <div class="slide-body" id="slide-22">
+    <h2>22. Trabajo Independiente para el Avance 2</h2>
+    <p>Consolidar en <code>modelos_v1_avance2.ipynb</code>:</p>
+    <ul>
+      <li>Agregar los índices espectrales (NDVI, NDWI) a la matriz de clustering y comparar si mejora la separación de pastizal vs bosque.</li>
+      <li>Completar la Parte 1 (Torneo Supervisado) y la Parte 2 (Segmentación No Supervisada).</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 23 -->
+  <div class="slide-body" id="slide-23">
+    <h2>23. Errores Comunes de Clustering</h2>
+    <ul>
+      <li>❌ Clusterizar latitud y longitud creyendo que se agrupan tipos de bosque.</li>
+      <li>❌ Interpretar centroides estandarizados como si fueran valores de reflectancia directa.</li>
+      <li>❌ Elegir k=8 solo porque la inercia baja, destruyendo la utilidad operativa de las alertas.</li>
+    </ul>
+  </div>
+
+  <!-- Diapositiva 24 -->
+  <div class="slide-body" id="slide-24">
+    <h2>24. Cierre: Tres Zonas, Tres Estrategias</h2>
+    <div class="card">
+      <p>K-Means descubrió la tríada estructural de la cuenca: <strong>Agua, Suelo en Riesgo y Vegetación</strong> sin supervisión.</p>
+      <p>Este cluster asignado ahora puede actuar como una <strong>nueva feature categórica</strong> para alimentar el modelo supervisado y la red neuronal recurrente.</p>
+      <p style="margin-top: 10px; color: var(--accent);"><strong>Próxima Sesión:</strong> Reglas de Asociación y Minería de Patrones Frecuentes.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="nav-btn" onclick="prevSlide()">❮ Anterior</button>
+    <div id="slide-counter">Diapositiva 1 / 24</div>
+    <button class="nav-btn" onclick="nextSlide()">Siguiente ❯</button>
+  </div>
+</div>
+
+<script>
+  let currentSlide = 1;
+  const totalSlides = 24;
+
+  function showSlide(n) {
+    document.querySelectorAll('.slide-body').forEach(el => el.classList.remove('active'));
+    document.getElementById(`slide-${n}`).classList.add('active');
+    document.getElementById('slide-counter').innerText = `Diapositiva ${n} / ${totalSlides}`;
+  }
+
+  function nextSlide() {
+    if (currentSlide < totalSlides) {
+      currentSlide++;
+      showSlide(currentSlide);
+    }
+  }
+
+  function prevSlide() {
+    if (currentSlide > 1) {
+      currentSlide--;
+      showSlide(currentSlide);
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+    if (e.key === 'ArrowLeft') prevSlide();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+modelo,configuracion,accuracy_train,accuracy_test,macro_f1_test,balanced_acc_test,tiempo_fit_ms
+Árbol depth 5 (entropía),"11 features, sin escalar",0.6736,0.5676,0.5328,0.5389,56.46
+GaussianNB,"11 features, sin escalar",0.5343,0.5177,0.4375,0.5073,2.98
+KNN k=5,"11 features, sin escalar",0.7027,0.5946,0.5669,0.5704,4.71
+KNN k=1 (escalado),"11 features, StandardScaler",1.0,0.5717,0.5613,0.5595,4.97
+KNN k=5 (escalado),"11 features, StandardScaler",0.7152,0.6216,0.5938,0.5957,5.26
+KNN k=11 (escalado),"11 features, StandardScaler",0.693,0.6279,0.5907,0.5931,4.71
+KNN k=31 (escalado),"11 features, StandardScaler",0.6473,0.6112,0.5439,0.5589,4.68
+KNN k=101 (escalado),"11 features, StandardScaler",0.6452,0.6112,0.4975,0.5458,4.72
+KNN k=5 (solo índices),"4 índices, sin escalar",0.7235,0.6341,0.5934,0.595,1.2
+KNN k=5 (solo índices),"4 índices, StandardScaler",0.7173,0.5967,0.5671,0.5732,1.5

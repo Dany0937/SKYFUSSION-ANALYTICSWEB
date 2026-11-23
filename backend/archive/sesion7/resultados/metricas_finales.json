@@ -1,0 +1,7 @@
+{
+  "modelo": "DecisionTreeClassifier(max_depth=5, criterion='entropy', random_state=42)",
+  "accuracy_train": 0.6736,
+  "accuracy_test": 0.5676,
+  "macro_f1_test": 0.5328,
+  "balanced_accuracy_test": 0.5389
+}

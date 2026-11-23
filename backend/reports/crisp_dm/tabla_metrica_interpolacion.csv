@@ -1,0 +1,5 @@
+metodo,rmse,mae,correlacion,ratio_varianza
+linear,0.0431,0.0314,0.1423,0.6316
+time,0.0431,0.0314,0.1423,0.6316
+pchip,0.0444,0.0325,0.1371,0.7239
+nearest,0.0473,0.0369,0.1448,0.9728

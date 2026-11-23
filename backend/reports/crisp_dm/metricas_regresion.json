@@ -1,0 +1,51 @@
+{
+  "Serie_15_Meses_Tendencia": {
+    "n_muestras": 15,
+    "n_features": 1,
+    "r2": 0.0205,
+    "r2_ajustado": -0.0548,
+    "rmse": 0.026,
+    "mae": 0.0212,
+    "mape_pct": 2.84,
+    "aic": -107.5,
+    "bic": -106.79,
+    "diagnostico_residuos": {
+      "media_residuos": -0.0,
+      "desv_est_residuos": 0.026,
+      "shapiro_pvalue": 0.17604,
+      "residuos_normales": true,
+      "durbin_watson": 1.403,
+      "autocorrelacion_detectada": true
+    },
+    "coeficientes": {
+      "t_step": 0.00087
+    },
+    "intercepto": 0.75175
+  },
+  "Serie_Completa_Multiple": {
+    "n_muestras": 46,
+    "n_features": 4,
+    "r2": 0.0356,
+    "r2_ajustado": -0.0585,
+    "rmse": 0.0366,
+    "mae": 0.0273,
+    "mape_pct": 3.72,
+    "aic": -296.34,
+    "bic": -289.02,
+    "diagnostico_residuos": {
+      "media_residuos": -0.00083,
+      "desv_est_residuos": 0.0366,
+      "shapiro_pvalue": 0.00081,
+      "residuos_normales": false,
+      "durbin_watson": 2.327,
+      "autocorrelacion_detectada": false
+    },
+    "coeficientes": {
+      "t_step": -0.00246,
+      "EVI": 0.00616,
+      "sen_estacional": 0.00318,
+      "cos_estacional": -0.00463
+    },
+    "intercepto": 0.76594
+  }
+}
